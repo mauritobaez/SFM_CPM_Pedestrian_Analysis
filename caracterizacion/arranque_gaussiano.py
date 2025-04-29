@@ -2,8 +2,9 @@
 import plotly.graph_objects as go
 import math
 import statistics
+import os
 
-FILES_TO_USE = [5] # [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+FILES_TO_USE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
 
 keys= []
@@ -37,17 +38,19 @@ for key in keys:
     last_time = None
 
     for i in range(len(time[key])):
-        if (vX[key][i] < 0.1 and vX[key][i] > -0.1 and vY[key][i] < 0.1 and vY[key][i] > -0.1) or i == 0:
+        if (vX[key][i] < 0.08 and vX[key][i] > -0.08 and vY[key][i] < 0.08 and vY[key][i] > -0.08) or i == 0:
             if last_time is None or time[key][i] - last_time > 0.5:
                 curr_time_when_stopped.append(time[key][i])
                 curr_index_when_stopped.append(i)
+            else:
+                curr_time_when_stopped[-1] = time[key][i]
+                curr_index_when_stopped[-1] = i
             last_time = time[key][i]            
     times_when_stopped[key] = curr_time_when_stopped
     index_when_stopped[key] = curr_index_when_stopped
 
-print(times_when_stopped)
-MIN_TIME_AFTER_STOP = 2.5
-MAX_TIME_AFTER_STOP = 4.5
+MIN_TIME_AFTER_STOP = 2
+MAX_TIME_AFTER_STOP = 3
 FPS = 60
 TICKS_MIN_TIME_AFTER_STOP = MIN_TIME_AFTER_STOP * FPS
 TICKS_MAX_TIME_AFTER_STOP = MAX_TIME_AFTER_STOP * FPS
@@ -60,9 +63,9 @@ for key in keys:
         curr_time = times_when_stopped[key][i]
         curr_index = index_when_stopped[key][i]
         curr_rapidez = []
-        for j in range(curr_index + TICKS_MIN_TIME_AFTER_STOP, curr_index + TICKS_MAX_TIME_AFTER_STOP):
+        for j in range(int(curr_index + TICKS_MIN_TIME_AFTER_STOP), int(curr_index + TICKS_MAX_TIME_AFTER_STOP)):
             if j >= 0 and j < len(time[key]):
-                curr_rapidez.append(math.sqrt(vX[key][j]**2, vY[key][j]**2))
+                curr_rapidez.append(math.sqrt(vX[key][j]**2 + vY[key][j]**2))
         if curr_rapidez:
             mean = statistics.mean(curr_rapidez)
             std_dev = statistics.stdev(curr_rapidez) if len(curr_rapidez) > 1 else 0
@@ -71,10 +74,12 @@ for key in keys:
 velocities_after_stopped = {}
 for key in keys:
     velocities_after_stopped[key] = []
-    for i in index_when_stopped:
+    for index_number_stop, i in enumerate(index_when_stopped[key]):
         curr_vel_after_stopped = []
-        curr_mean, curr_std_dev = gaussian_distibution[key][i]
-        for j in range(i, i+TICKS_MIN_TIME_AFTER_STOP):
+        if index_number_stop >= len(gaussian_distibution[key]):
+            break
+        curr_mean, curr_std_dev = gaussian_distibution[key][index_number_stop]
+        for j in range(i, int(i+TICKS_MIN_TIME_AFTER_STOP)):
             if j < len(time[key]):
                 curr_vel_after_stopped.append((vX[key][j], vY[key][j], time[key][j]))
                 curr_rapidez = math.sqrt(vX[key][j]**2 + vY[key][j]**2)
@@ -82,10 +87,11 @@ for key in keys:
                     exit
         velocities_after_stopped[key].append(curr_vel_after_stopped)
                
-
-fig = go.Figure()
+all_fig = go.Figure()
 for key in keys:
-    for stopped_velocities in velocities_after_stopped[key]:
+    for index, stopped_velocities in enumerate(velocities_after_stopped[key]):
+        fig = go.Figure()
+
         times = []
         velocities_x = []
         velocities_y = []
@@ -94,20 +100,43 @@ for key in keys:
             velocities_x.append(vx)
             velocities_y.append(vy)
         
-        fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'vX {key}', line=dict(color='blue')))
-        fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'vY {key}', line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'Horizontal Speed (m/s)', line=dict(color='blue')))
+        fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'Vertical Speed (m/s)', line=dict(color='red')))
+        all_fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', line=dict(color='blue')))
+        all_fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', line=dict(color='red')))
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
-        
+        fig.update_layout(
+            xaxis_title="Time (s)",
+            yaxis_title="Velocity (m/s)",
+            template="plotly_white",
+            showlegend=False,
+        )
 
-fig.update_layout(
-    xaxis_title="Time (s)",
-    yaxis_title="Velocity (m/s)",
-    template="plotly_white",
-    showlegend=False,
-)
+        os.makedirs(f"./caracterizacion/imagenes/{key}/arranques", exist_ok=True)
 
-fig.show()
+        # Save the figure
+        fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/arranque_gaussiano_{index}.png")
+
+    for trace in all_fig['data']: 
+        trace['showlegend'] = False
+
+    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Horizontal Speed (m/s)', line=dict(color='blue')))
+    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Vertical Speed (m/s)', line=dict(color='red')))
+
+    all_fig.update_layout(
+        xaxis_title="Time (s)",
+        yaxis_title="Velocity (m/s)",
+        template="plotly_white",
+        showlegend=True,
+        legend=dict(
+            itemsizing='constant',
+            title="Legend",
+            font=dict(size=9),
+        )
+    )
+
+    all_fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/arranque_gaussiano_todos.png")
 
 
 

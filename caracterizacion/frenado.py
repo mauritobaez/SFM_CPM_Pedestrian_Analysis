@@ -1,6 +1,7 @@
+import os
 import plotly.graph_objects as go
 
-FILES_TO_USE = [5] # [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+FILES_TO_USE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 FPS = 60 # frames per second
 
 keys= []
@@ -49,12 +50,14 @@ for key in keys:
         for j in range(i - TICKS_BEFORE_STOP, i+1):
             if j >= 0:
                 curr_data_before_stopped.append((vX[key][j], vY[key][j], time[key][j]))
-        velocities_before_stopped[key].append(curr_data_before_stopped)
-            
+        if curr_data_before_stopped:
+            velocities_before_stopped[key].append(curr_data_before_stopped)
 
-fig = go.Figure()
+all_fig = go.Figure()
 for key in keys:
-    for stopped_velocities in velocities_before_stopped[key]:
+    for index, stopped_velocities in enumerate(velocities_before_stopped[key]):
+        fig = go.Figure()
+
         times = []
         velocities_x = []
         velocities_y = []
@@ -63,17 +66,40 @@ for key in keys:
             velocities_x.append(vx)
             velocities_y.append(vy)
         
-        fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'vX {key}', line=dict(color='blue')))
-        fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'vY {key}', line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'Horizontal Speed (m/s)', line=dict(color='blue')))
+        fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'Vertical Speed (m/s)', line=dict(color='red')))
+        all_fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', line=dict(color='blue')))
+        all_fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', line=dict(color='red')))
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
-        
+        fig.update_layout(
+            xaxis_title="Time (s)",
+            yaxis_title="Velocity (m/s)",
+            template="plotly_white",
+            showlegend=False,
+        )
 
-fig.update_layout(
-    xaxis_title="Time (s)",
-    yaxis_title="Velocity (m/s)",
-    template="plotly_white",
-    showlegend=False,
-)
+        os.makedirs(f"./caracterizacion/imagenes/{key}/frenados", exist_ok=True)
 
-fig.show()
+        # Save the figure
+        fig.write_image(f"./caracterizacion/imagenes/{key}/frenados/frenado_{index}.png")
+
+    for trace in all_fig['data']: 
+        trace['showlegend'] = False
+
+    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Horizontal Speed (m/s)', line=dict(color='blue')))
+    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Vertical Speed (m/s)', line=dict(color='red')))
+
+    all_fig.update_layout(
+        xaxis_title="Time (s)",
+        yaxis_title="Velocity (m/s)",
+        template="plotly_white",
+        showlegend=True,
+        legend=dict(
+            itemsizing='constant',
+            title="Legend",
+            font=dict(size=9),
+        )
+    )
+
+    all_fig.write_image(f"./caracterizacion/imagenes/{key}/frenados/frenado_todos.png")

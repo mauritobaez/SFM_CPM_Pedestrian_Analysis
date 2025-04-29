@@ -41,7 +41,7 @@ for key in keys:
     times_when_stopped[key] = curr_time_when_stopped
 
 print(times_when_stopped)
-MAX_TIME_AFTER_STOP = 4
+MAX_TIME_AFTER_STOP = 5
 velocities_after_stopped = {}
 for key in keys:
     velocities_after_stopped[key] = []
