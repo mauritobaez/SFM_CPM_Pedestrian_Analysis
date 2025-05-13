@@ -6,7 +6,6 @@ import os
 
 FILES_TO_USE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
-
 keys= []
 time = {}
 vX = {}
@@ -30,23 +29,18 @@ for key in keys:
         vY[key].append(float(line_values[4]))
 
 
-times_when_stopped = {}
 index_when_stopped = {}
 for key in keys:
-    curr_time_when_stopped = []
     curr_index_when_stopped = []
     last_time = None
 
     for i in range(len(time[key])):
         if (vX[key][i] < 0.08 and vX[key][i] > -0.08 and vY[key][i] < 0.08 and vY[key][i] > -0.08) or i == 0:
             if last_time is None or time[key][i] - last_time > 0.5:
-                curr_time_when_stopped.append(time[key][i])
                 curr_index_when_stopped.append(i)
             else:
-                curr_time_when_stopped[-1] = time[key][i]
                 curr_index_when_stopped[-1] = i
             last_time = time[key][i]            
-    times_when_stopped[key] = curr_time_when_stopped
     index_when_stopped[key] = curr_index_when_stopped
 
 MIN_TIME_AFTER_STOP = 2
@@ -57,10 +51,9 @@ TICKS_MAX_TIME_AFTER_STOP = MAX_TIME_AFTER_STOP * FPS
 gaussian_distibution = {}
 
 for key in keys:
-    for i in range(len(times_when_stopped[key])):
+    for i in range(len(index_when_stopped[key])):
         if i == 0:
             gaussian_distibution[key] = []
-        curr_time = times_when_stopped[key][i]
         curr_index = index_when_stopped[key][i]
         curr_rapidez = []
         for j in range(int(curr_index + TICKS_MIN_TIME_AFTER_STOP), int(curr_index + TICKS_MAX_TIME_AFTER_STOP)):
@@ -87,8 +80,8 @@ for key in keys:
                     exit
         velocities_after_stopped[key].append(curr_vel_after_stopped)
                
-all_fig = go.Figure()
 for key in keys:
+    all_fig = go.Figure()
     for index, stopped_velocities in enumerate(velocities_after_stopped[key]):
         fig = go.Figure()
 
@@ -102,8 +95,6 @@ for key in keys:
         
         fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'Horizontal Speed (m/s)', line=dict(color='blue')))
         fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'Vertical Speed (m/s)', line=dict(color='red')))
-        all_fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', line=dict(color='blue')))
-        all_fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', line=dict(color='red')))
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
         fig.update_layout(
@@ -136,7 +127,7 @@ for key in keys:
         )
     )
 
-    all_fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/arranque_gaussiano_todos.png")
+    all_fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/arranque_gaussiano_mejores.png")
 
 
 

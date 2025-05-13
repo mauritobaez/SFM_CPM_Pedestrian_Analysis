@@ -45,16 +45,17 @@ TICKS_BEFORE_STOP = TIME_BEFORE_STOP * FPS
 velocities_before_stopped = {}
 for key in keys:
     velocities_before_stopped[key] = []
-    for i in curr_index_when_stopped:
+    for i in index_when_stopped[key]:
         curr_data_before_stopped = []
-        for j in range(i - TICKS_BEFORE_STOP, i+1):
-            if j >= 0:
+        for j in range(i - TICKS_BEFORE_STOP, i+30):
+            if j >= 0 and j < len(time[key]):
                 curr_data_before_stopped.append((vX[key][j], vY[key][j], time[key][j]))
         if curr_data_before_stopped:
             velocities_before_stopped[key].append(curr_data_before_stopped)
 
-all_fig = go.Figure()
+
 for key in keys:
+    all_fig = go.Figure()
     for index, stopped_velocities in enumerate(velocities_before_stopped[key]):
         fig = go.Figure()
 
@@ -102,4 +103,4 @@ for key in keys:
         )
     )
 
-    all_fig.write_image(f"./caracterizacion/imagenes/{key}/frenados/frenado_todos.png")
+    all_fig.write_image(f"./caracterizacion/imagenes/{key}/frenados/frenado_mejores.png")
