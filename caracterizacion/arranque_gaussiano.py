@@ -58,7 +58,7 @@ for key in keys:
         curr_rapidez = []
         for j in range(int(curr_index + TICKS_MIN_TIME_AFTER_STOP), int(curr_index + TICKS_MAX_TIME_AFTER_STOP)):
             if j >= 0 and j < len(time[key]):
-                curr_rapidez.append(math.sqrt(vX[key][j]**2 + vY[key][j]**2))
+                curr_rapidez.append(math.max(abs(vX[key][j]), abs(vY[key][j])))
         if curr_rapidez:
             mean = statistics.mean(curr_rapidez)
             std_dev = statistics.stdev(curr_rapidez) if len(curr_rapidez) > 1 else 0
@@ -74,9 +74,10 @@ for key in keys:
         curr_mean, curr_std_dev = gaussian_distibution[key][index_number_stop]
         for j in range(i, int(i+TICKS_MIN_TIME_AFTER_STOP)):
             if j < len(time[key]):
-                curr_vel_after_stopped.append((vX[key][j], vY[key][j], time[key][j]))
-                curr_rapidez = math.sqrt(vX[key][j]**2 + vY[key][j]**2)
-                if curr_mean - curr_std_dev > curr_rapidez and curr_mean + curr_std_dev < curr_rapidez:
+                vel_importante = math.max(abs(vX[key][j]), abs(vY[key][j]))
+                curr_vel_after_stopped.append((vel_importante, time[key][j]))
+                
+                if curr_mean - curr_std_dev > vel_importante and curr_mean + curr_std_dev < vel_importante:
                     exit
         velocities_after_stopped[key].append(curr_vel_after_stopped)
                
@@ -86,15 +87,14 @@ for key in keys:
         fig = go.Figure()
 
         times = []
-        velocities_x = []
-        velocities_y = []
-        for i, (vx, vy, t) in enumerate(stopped_velocities):
-            times.append(t)
-            velocities_x.append(vx)
-            velocities_y.append(vy)
+        velocities = []
         
-        fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'Horizontal Speed (m/s)', line=dict(color='blue')))
-        fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'Vertical Speed (m/s)', line=dict(color='red')))
+        for i, (v, t) in enumerate(stopped_velocities):
+            times.append(t)
+            velocities.append(v)
+        
+        fig.add_trace(go.Scatter(x=times, y=velocities, mode='lines', name=f'Speed (m/s)', line=dict(color='blue')))
+        all_fig.add_trace(go.Scatter(x=times, y=velocities, mode='lines', line=dict(color='blue')))
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
         fig.update_layout(
@@ -112,8 +112,7 @@ for key in keys:
     for trace in all_fig['data']: 
         trace['showlegend'] = False
 
-    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Horizontal Speed (m/s)', line=dict(color='blue')))
-    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Vertical Speed (m/s)', line=dict(color='red')))
+    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Speed (m/s)', line=dict(color='blue')))
 
     all_fig.update_layout(
         xaxis_title="Time (s)",

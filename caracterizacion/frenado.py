@@ -1,3 +1,4 @@
+import math
 import os
 import plotly.graph_objects as go
 
@@ -49,7 +50,7 @@ for key in keys:
         curr_data_before_stopped = []
         for j in range(i - TICKS_BEFORE_STOP, i+30):
             if j >= 0 and j < len(time[key]):
-                curr_data_before_stopped.append((vX[key][j], vY[key][j], time[key][j]))
+                curr_data_before_stopped.append((math.max(abs(vX[key][j]), abs(vY[key][j])), time[key][j]))
         if curr_data_before_stopped:
             velocities_before_stopped[key].append(curr_data_before_stopped)
 
@@ -60,17 +61,14 @@ for key in keys:
         fig = go.Figure()
 
         times = []
-        velocities_x = []
-        velocities_y = []
-        for i, (vx, vy, t) in enumerate(stopped_velocities):
+        velocities = []
+
+        for i, (v, t) in enumerate(stopped_velocities):
             times.append(t)
-            velocities_x.append(vx)
-            velocities_y.append(vy)
+            velocities.append(v)
         
-        fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', name=f'Horizontal Speed (m/s)', line=dict(color='blue')))
-        fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', name=f'Vertical Speed (m/s)', line=dict(color='red')))
-        all_fig.add_trace(go.Scatter(x=times, y=velocities_x, mode='lines', line=dict(color='blue')))
-        all_fig.add_trace(go.Scatter(x=times, y=velocities_y, mode='lines', line=dict(color='red')))
+        fig.add_trace(go.Scatter(x=times, y=velocities, mode='lines', name=f'Speed (m/s)', line=dict(color='blue')))
+        all_fig.add_trace(go.Scatter(x=times, y=velocities, mode='lines', line=dict(color='blue')))
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
         fig.update_layout(
@@ -88,8 +86,7 @@ for key in keys:
     for trace in all_fig['data']: 
         trace['showlegend'] = False
 
-    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Horizontal Speed (m/s)', line=dict(color='blue')))
-    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Vertical Speed (m/s)', line=dict(color='red')))
+    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Speed (m/s)', line=dict(color='blue')))
 
     all_fig.update_layout(
         xaxis_title="Time (s)",
