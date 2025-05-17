@@ -34,15 +34,6 @@ for key in keys:
         vY[key].append(float(line_values[4]))
 
 
-velocities = {}
-for key in keys:
-    curr_vel = []
-    curr_vx = vX[key]
-    curr_vy = vY[key]
-    for i in range(len(time[key])):
-        curr_vel.append(max(abs(curr_vx[i]),abs(curr_vy[i])))
-    velocities[key] = curr_vel
-
 
 
 ###
@@ -80,6 +71,22 @@ for key in keys:
         if curr_data_before_stopped:
             velocities_before_stopped[key].append(curr_data_before_stopped)
 
+
+velocities = {}
+for key in keys:
+    curr_dir = 0
+    curr_velocities = []
+    stops = index_when_stopped[key]
+    direction_vel = vX
+    for i in range(len(time[key])):
+        if curr_dir < len(stops) and i == stops[curr_dir]:
+            curr_dir +=1
+            if curr_dir == 3 or curr_dir == 6: # Es como estar contando (empezando en 1) los puntos 
+                direction_vel = vY
+            else:
+                direction_vel = vX
+        curr_velocities.append(abs(direction_vel[key][i]))
+    velocities[key] = curr_velocities
 
 ###
 
@@ -124,7 +131,6 @@ for key in keys:
         
 
     fig.update_layout(
-        title=f"Speed vs Time for {key}. 4 meters before stop highlighted",
         xaxis_title="Time (s)",
         yaxis_title="Speed (m/s)",
         template="plotly_white",

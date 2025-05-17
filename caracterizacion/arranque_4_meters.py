@@ -116,7 +116,7 @@ for key in keys:
 
     all_fig.show()
     #all_fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/4metros/arranque_4metros_mejores.png")
-    all_fig.write_image(f"./imagenes2/{key}_4metros_arranque.png", width=800, height=600)
+    #all_fig.write_image(f"./imagenes2/{key}_4metros_arranque.png", width=800, height=600)
 
 
 

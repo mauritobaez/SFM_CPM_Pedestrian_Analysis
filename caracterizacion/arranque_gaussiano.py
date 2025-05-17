@@ -9,6 +9,8 @@ keys= []
 time = {}
 vX = {}
 vY = {}
+x = {}
+y = {}
 
 for i in FILES_TO_USE:
     key = f"{i:02}"
@@ -16,6 +18,8 @@ for i in FILES_TO_USE:
     time[key] = []
     vX[key] = []
     vY[key] = []
+    x[key] = []
+    y[key] = []
 
 for key in keys:
     with open(f"./datosCorregidos/tXYvXvY{key}.txt", "r") as values:
@@ -24,6 +28,8 @@ for key in keys:
     for line in lines:
         line_values = line.split(sep='\t')
         time[key].append(float(line_values[0]))
+        x[key].append(float(line_values[1]))
+        y[key].append(float(line_values[2]))
         vX[key].append(float(line_values[3]))
         vY[key].append(float(line_values[4]))
 
@@ -33,9 +39,11 @@ for key in keys:
     curr_index_when_stopped = []
     last_time = None
 
+    value_max = 0.13 if key == "11" else 0.08 # ESTO ES UNA NEGRADA
+
     for i in range(len(time[key])):
-        if (vX[key][i] < 0.08 and vX[key][i] > -0.08 and vY[key][i] < 0.08 and vY[key][i] > -0.08) or i == 0:
-            if last_time is None or time[key][i] - last_time > 0.5:
+        if (vX[key][i] < value_max and vX[key][i] > -value_max and vY[key][i] < value_max and vY[key][i] > -value_max) or i == 0:
+            if last_time is None or time[key][i] - last_time > 1:
                 curr_index_when_stopped.append(i)
             else:
                 curr_index_when_stopped[-1] = i
@@ -55,9 +63,12 @@ for key in keys:
             gaussian_distibution[key] = []
         curr_index = index_when_stopped[key][i]
         curr_rapidez = []
+
+        direction_vel, direction_walk = (vY, y) if i == 2 or i == 5 else (vX, x)
+
         for j in range(int(curr_index + TICKS_MIN_TIME_AFTER_STOP), int(curr_index + TICKS_MAX_TIME_AFTER_STOP)):
             if j >= 0 and j < len(time[key]):
-                curr_rapidez.append(max(abs(vX[key][j]), abs(vY[key][j])))
+                curr_rapidez.append(abs(direction_vel[key][j]))
         if curr_rapidez:
             mean = statistics.mean(curr_rapidez)
             std_dev = statistics.stdev(curr_rapidez) if len(curr_rapidez) > 1 else 0
@@ -70,10 +81,12 @@ for key in keys:
         curr_vel_after_stopped = []
         if index_number_stop >= len(gaussian_distibution[key]):
             break
+
+        direction_vel, direction_walk = (vY, y) if index_number_stop == 2 or index_number_stop == 5 else (vX, x)
         curr_mean, curr_std_dev = gaussian_distibution[key][index_number_stop]
         for j in range(i, int(i+TICKS_MIN_TIME_AFTER_STOP)):
             if j < len(time[key]):
-                vel_importante = max(abs(vX[key][j]), abs(vY[key][j]))
+                vel_importante = abs(direction_vel[key][j])
                 curr_vel_after_stopped.append((vel_importante, time[key][j]))
                 
                 if curr_mean - curr_std_dev > vel_importante and curr_mean + curr_std_dev < vel_importante:
@@ -117,7 +130,7 @@ for key in keys:
         xaxis_title="Time (s)",
         yaxis_title="Velocity (m/s)",
         template="plotly_white",
-        showlegend=True,
+        showlegend=False,
         legend=dict(
             itemsizing='constant',
             title="Legend",

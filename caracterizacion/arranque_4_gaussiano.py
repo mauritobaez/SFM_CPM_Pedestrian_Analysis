@@ -4,7 +4,7 @@ import statistics
 import plotly.graph_objects as go
 
 
-FILES_TO_USE = [i for i in range(0, 14)] #[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+FILES_TO_USE = [i for i in range(0, 14)]
 
 
 keys= []
@@ -34,17 +34,6 @@ for key in keys:
         y[key].append(float(line_values[2]))
         vX[key].append(float(line_values[3]))
         vY[key].append(float(line_values[4]))
-
-
-velocities = {}
-for key in keys:
-    curr_vel = []
-    curr_vx = vX[key]
-    curr_vy = vY[key]
-    for i in range(len(time[key])):
-        curr_vel.append(max(abs(curr_vx[i]),abs(curr_vy[i])))
-    velocities[key] = curr_vel
-
 
 
 ###
@@ -84,7 +73,7 @@ for key in keys:
 
         for j in range(int(curr_index + TICKS_MIN_TIME_AFTER_STOP), int(curr_index + TICKS_MAX_TIME_AFTER_STOP)):
             if j >= 0 and j < len(time[key]):
-                curr_rapidez.append(abs(direction_vel[key][curr_index]))
+                curr_rapidez.append(abs(direction_vel[key][j]))
         if curr_rapidez:
             mean = statistics.mean(curr_rapidez)
             std_dev = statistics.stdev(curr_rapidez) if len(curr_rapidez) > 1 else 0
@@ -98,11 +87,11 @@ for key in keys:
         if index_number_stop >= len(gaussian_distibution[key]):
             break
 
-        direction_vel, direction_walk = (vY, y) if i == 2 or i == 5 else (vX, x)
+        direction_vel, direction_walk = (vY, y) if i == index_number_stop or i == index_number_stop else (vX, x)
         curr_mean, curr_std_dev = gaussian_distibution[key][index_number_stop]
         for j in range(i, int(i+TICKS_MIN_TIME_AFTER_STOP)):
             if j < len(time[key]):
-                vel_importante = abs(direction_vel[key][curr_index])
+                vel_importante = abs(direction_vel[key][j])
                 curr_vel_after_stopped.append((vel_importante, time[key][j]))
                 
                 if curr_mean - curr_std_dev > vel_importante and curr_mean + curr_std_dev < vel_importante:
@@ -113,10 +102,10 @@ for key in keys:
 
 ############################################################################################
 
-speeds = {}
+speeds_meters = {}
 
 for key in keys:
-    speeds[key] = []
+    speeds_meters[key] = []
     for i in range(len(index_when_stopped[key])):
         curr_index = index_when_stopped[key][i]
         curr_rapidez = []
@@ -127,18 +116,36 @@ for key in keys:
             curr_rapidez.append((abs(direction_vel[key][curr_index]), time[key][curr_index]))
             curr_index += 1
 
-        speeds[key].append(curr_rapidez)
+        speeds_meters[key].append(curr_rapidez)
+
+
+
+velocities = {}
+for key in keys:
+    curr_dir = 0
+    curr_velocities = []
+    stops = index_when_stopped[key]
+    direction_vel = vX
+    for i in range(len(time[key])):
+        if curr_dir < len(stops) and i == stops[curr_dir]:
+            curr_dir +=1
+            if curr_dir == 3 or curr_dir == 6: # Es como estar contando (empezando en 1) los puntos 
+                direction_vel = vY
+            else:
+                direction_vel = vX
+        curr_velocities.append(abs(direction_vel[key][i]))
+    velocities[key] = curr_velocities
 
 ###
 
 for key in keys:    
     fig = go.Figure()
 
-    fig.add_trace(go.Scatter(x=time[key], y=velocities[key], mode='lines', name=f'v {key}', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=time[key], y=velocities[key], mode='lines', line=dict(color='blue'), showlegend=False))
     fig.update_xaxes(showgrid=False, dtick=5) 
     fig.update_yaxes(showgrid=False)
 
-    for index, stopped_velocities in enumerate(speeds[key]):
+    for index, stopped_velocities in enumerate(speeds_meters[key]):
 
         fig.add_shape(
             type="rect",
@@ -151,46 +158,44 @@ for key in keys:
             layer="below",
             line_width=0,
         )
+
+
+    for index, stopped_velocities in enumerate(velocities_after_stopped[key]):
+
         fig.add_shape(
             type="rect",
             x0=stopped_velocities[0][1],
             x1=stopped_velocities[-1][1],
             y0=min(velocities[key]) - 0.1,  # Extend a bit below the data
             y1=max(velocities[key]) + 0.3,  # Extend a bit above the data
-            fillcolor="blue",
+            fillcolor="red",
             opacity=0.4,
             layer="below",
             line_width=0,
         )
-        #fig.add_shape(
-        #    type="line",
-        #    x0=stopped_velocities[0][1],
-        #    x1=stopped_velocities[0][1],
-        #    y0=min(velocities[key]),
-        #    y1=max(velocities[key])+0.2,
-        #    line=dict(color="red", width=3, dash="dash"),
-        #    layer="below"
-        #)
-        #fig.add_shape(
-        #    type="line",
-        #    x0=stopped_velocities[-1][1],
-        #    x1=stopped_velocities[-1][1],
-        #    y0=min(velocities[key]),
-        #    y1=max(velocities[key])+0.2,
-        #    line=dict(color="red", width=3, dash="dash"),
-        #    layer="below"
-        #)
-        
+
+
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='markers',
+        marker=dict(size=10, color='blue', opacity=0.4),
+        name='Zone: only 4 meters'
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='markers',
+        marker=dict(size=10, color='red', opacity=0.4),
+        name='Zone: 4 meters & gaussian'
+    ))
 
     fig.update_layout(
-        title=f"Velocity vs Time for {key}. 4 meters after stop highlighted",
         xaxis_title="Time (s)",
-        yaxis_title="Velocity (m/s)",
+        yaxis_title="Speed (m/s)",
         template="plotly_white",
-        showlegend=False,
+        showlegend=True,
     )
 
-    fig.write_image(f"./imagenes2/{key}_all_4metros_arranque.png", width=800, height=600)
-
+    fig.write_image(f"./imagenes2/{key}_gauss4metros_arranque.png", width=800, height=600)
+    #fig.show()
 
 
