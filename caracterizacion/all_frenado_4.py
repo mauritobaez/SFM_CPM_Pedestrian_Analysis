@@ -1,7 +1,9 @@
+
 import plotly.graph_objects as go
 
-FILES_TO_USE = [5]
-FPS = 60 # frames per second
+
+FILES_TO_USE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
 
 keys= []
 time = {}
@@ -31,6 +33,19 @@ for key in keys:
         vX[key].append(float(line_values[3]))
         vY[key].append(float(line_values[4]))
 
+
+velocities = {}
+for key in keys:
+    curr_vel = []
+    curr_vx = vX[key]
+    curr_vy = vY[key]
+    for i in range(len(time[key])):
+        curr_vel.append(max(abs(curr_vx[i]),abs(curr_vy[i])))
+    velocities[key] = curr_vel
+
+
+
+###
 index_when_stopped = {}
 for key in keys:
     curr_index_when_stopped = []
@@ -66,50 +81,58 @@ for key in keys:
             velocities_before_stopped[key].append(curr_data_before_stopped)
 
 
-for key in keys:
-    all_fig = go.Figure()
+###
+
+for key in keys:    
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(x=time[key], y=velocities[key], mode='lines', name=f'v {key}', line=dict(color='blue')))
+    fig.update_xaxes(showgrid=False, dtick=5) 
+    fig.update_yaxes(showgrid=False)
+
     for index, stopped_velocities in enumerate(velocities_before_stopped[key]):
-        fig = go.Figure()
 
-        times = []
-        velocities = []
-
-        for i, (v, t) in enumerate(stopped_velocities):
-            times.append(t)
-            velocities.append(v)
+        fig.add_shape(
+            type="rect",
+            x0=stopped_velocities[0][1],
+            x1=stopped_velocities[-1][1],
+            y0=min(velocities[key]) - 0.1,  # Extend a bit below the data
+            y1=max(velocities[key]) + 0.3,  # Extend a bit above the data
+            fillcolor="red",
+            opacity=0.4,
+            layer="below",
+            line_width=0,
+        )
+        #fig.add_shape(
+        #    type="line",
+        #    x0=stopped_velocities[0][1],
+        #    x1=stopped_velocities[0][1],
+        #    y0=min(velocities[key]),
+        #    y1=max(velocities[key])+0.2,
+        #    line=dict(color="red", width=3, dash="dash"),
+        #    layer="below"
+        #)
+        #fig.add_shape(
+        #    type="line",
+        #    x0=stopped_velocities[-1][1],
+        #    x1=stopped_velocities[-1][1],
+        #    y0=min(velocities[key]),
+        #    y1=max(velocities[key])+0.2,
+        #    line=dict(color="red", width=3, dash="dash"),
+        #    layer="below"
+        #)
         
-        fig.add_trace(go.Scatter(x=times, y=velocities, mode='lines', name=f'Speed (m/s)', line=dict(color='blue')))
-        all_fig.add_trace(go.Scatter(x=times, y=velocities, mode='lines', line=dict(color='blue')))
-        fig.update_xaxes(showgrid=False, dtick=5) 
-        fig.update_yaxes(showgrid=False)
-        fig.update_layout(
-            xaxis_title="Time (s)",
-            yaxis_title="Velocity (m/s)",
-            template="plotly_white",
-            showlegend=False,
-        )
 
-        #os.makedirs(f"./caracterizacion/imagenes/{key}/frenados", exist_ok=True)
-
-        # Save the figure
-        #fig.write_image(f"./caracterizacion/imagenes/{key}/frenados/frenado_{index}.png")
-
-    for trace in all_fig['data']: 
-        trace['showlegend'] = False
-
-    all_fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='Speed (m/s)', line=dict(color='blue')))
-
-    all_fig.update_layout(
+    fig.update_layout(
+        title=f"Speed vs Time for {key}. 4 meters before stop highlighted",
         xaxis_title="Time (s)",
-        yaxis_title="Velocity (m/s)",
+        yaxis_title="Speed (m/s)",
         template="plotly_white",
-        showlegend=True,
-        legend=dict(
-            itemsizing='constant',
-            title="Legend",
-            font=dict(size=9),
-        )
+        showlegend=False,
     )
 
-    #all_fig.show()
-    all_fig.write_image(f"./imagenes2/{key}_4metros_frenado.png", width=800, height=600)
+    fig.write_image(f"./imagenes2/{key}_all_4metros_frenado.png", width=800, height=600)
+    #fig.show()
+
+
+

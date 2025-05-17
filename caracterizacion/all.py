@@ -9,6 +9,8 @@ keys= []
 time = {}
 vX = {}
 vY = {}
+x = {}
+y = {}
 
 for i in FILES_TO_USE:
     key = f"{i:02}"
@@ -16,6 +18,8 @@ for i in FILES_TO_USE:
     time[key] = []
     vX[key] = []
     vY[key] = []
+    x[key] = []
+    y[key] = []
 
 for key in keys:
     with open(f"./datosCorregidos/tXYvXvY{key}.txt", "r") as values:
@@ -24,6 +28,8 @@ for key in keys:
     for line in lines:
         line_values = line.split(sep='\t')
         time[key].append(float(line_values[0]))
+        x[key].append(float(line_values[1]))
+        y[key].append(float(line_values[2]))
         vX[key].append(float(line_values[3]))
         vY[key].append(float(line_values[4]))
 

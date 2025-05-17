@@ -1,10 +1,9 @@
 
 import plotly.graph_objects as go
-import math
 import statistics
 import os
 
-FILES_TO_USE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+FILES_TO_USE = [i for i in range(0, 14)]
 
 keys= []
 time = {}
@@ -58,7 +57,7 @@ for key in keys:
         curr_rapidez = []
         for j in range(int(curr_index + TICKS_MIN_TIME_AFTER_STOP), int(curr_index + TICKS_MAX_TIME_AFTER_STOP)):
             if j >= 0 and j < len(time[key]):
-                curr_rapidez.append(math.max(abs(vX[key][j]), abs(vY[key][j])))
+                curr_rapidez.append(max(abs(vX[key][j]), abs(vY[key][j])))
         if curr_rapidez:
             mean = statistics.mean(curr_rapidez)
             std_dev = statistics.stdev(curr_rapidez) if len(curr_rapidez) > 1 else 0
@@ -74,11 +73,11 @@ for key in keys:
         curr_mean, curr_std_dev = gaussian_distibution[key][index_number_stop]
         for j in range(i, int(i+TICKS_MIN_TIME_AFTER_STOP)):
             if j < len(time[key]):
-                vel_importante = math.max(abs(vX[key][j]), abs(vY[key][j]))
+                vel_importante = max(abs(vX[key][j]), abs(vY[key][j]))
                 curr_vel_after_stopped.append((vel_importante, time[key][j]))
                 
                 if curr_mean - curr_std_dev > vel_importante and curr_mean + curr_std_dev < vel_importante:
-                    exit
+                    break
         velocities_after_stopped[key].append(curr_vel_after_stopped)
                
 for key in keys:
@@ -126,7 +125,7 @@ for key in keys:
         )
     )
 
-    all_fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/arranque_gaussiano_mejores.png")
-
+    #all_fig.write_image(f"./caracterizacion/imagenes/{key}/arranques/arranque_gaussiano_mejores.png")
+    all_fig.show()
 
 
