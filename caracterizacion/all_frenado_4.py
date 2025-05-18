@@ -110,24 +110,7 @@ for key in keys:
             layer="below",
             line_width=0,
         )
-        #fig.add_shape(
-        #    type="line",
-        #    x0=stopped_velocities[0][1],
-        #    x1=stopped_velocities[0][1],
-        #    y0=min(velocities[key]),
-        #    y1=max(velocities[key])+0.2,
-        #    line=dict(color="red", width=3, dash="dash"),
-        #    layer="below"
-        #)
-        #fig.add_shape(
-        #    type="line",
-        #    x0=stopped_velocities[-1][1],
-        #    x1=stopped_velocities[-1][1],
-        #    y0=min(velocities[key]),
-        #    y1=max(velocities[key])+0.2,
-        #    line=dict(color="red", width=3, dash="dash"),
-        #    layer="below"
-        #)
+
         
 
     fig.update_layout(
@@ -137,8 +120,8 @@ for key in keys:
         showlegend=False,
     )
 
-    fig.write_image(f"./imagenes2/{key}_all_4metros_frenado.png", width=800, height=600)
-    #fig.show()
+    #fig.write_image(f"./imagenes2/{key}_all_4metros_frenado.png", width=800, height=600)
+    fig.show()
 
 
 

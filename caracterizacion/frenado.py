@@ -2,7 +2,7 @@ import math
 import os
 import plotly.graph_objects as go
 
-FILES_TO_USE = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+FILES_TO_USE = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 FPS = 60 # frames per second
 
 keys= []
