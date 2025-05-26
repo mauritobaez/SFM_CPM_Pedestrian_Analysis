@@ -1,0 +1,113 @@
+
+"""
+Created on Thu Nov 30 14:53:18 2023
+
+@author: german
+"""
+
+import numpy as np
+import glob
+from scipy.signal import savgol_filter
+
+def hampel_filter(v, window_size=7, n_sigmas=3):
+    """
+    v: array 1D de velocidades (o posiciones)
+    window_size: longitud de la ventana (debe ser impar)
+    n_sigmas: número de desviaciones estándar para considerar outlier
+    """
+    L = len(v)
+    k = (window_size - 1) // 2
+    filtered = v.copy()
+    
+    for i in range(L):
+        # límites de ventana
+        lo = max(i - k, 0)
+        hi = min(i + k + 1, L)
+        window = v[lo:hi]
+        
+        med = np.median(window)
+        sigma = 1.4826 * np.median(np.abs(window - med))  # estimador robusto
+        if np.abs(v[i] - med) > n_sigmas * sigma:
+            filtered[i] = med  # reemplaza outlier por mediana local
+    return filtered
+
+
+
+def velocities(x,y,dt):
+    vx = np.zeros(len(x))
+    vy = np.zeros(len(y))
+    
+    for i in range(len(x)-4):
+        vx[i+2] = (x[i]/12-2/3*x[i+1]+2/3*x[i+3]-x[i+4]/12)/dt
+        vy[i+2] = (y[i]/12-2/3*y[i+1]+2/3*y[i+3]-y[i+4]/12)/dt
+        if vx[i+2] > 5:
+            print('vx',i+2,vx[i+2])
+            print(f'Values = {x[i]},{x[i+1]},{x[i+2]},{x[i+3]},{x[i+4]}')
+    
+    vx[0] = (x[1]-x[0])/dt
+    vy[0] = (y[1]-y[0])/dt
+    vx[1] = (x[2]-x[0])/dt/2
+    vy[1] = (y[2]-y[0])/dt/2
+    vx[-1] = (x[-1]-x[-2])/dt
+    vy[-1] = (y[-1]-y[-2])/dt
+    vx[-2] = (x[-1]-x[-3])/dt/2
+    vy[-2] = (y[-1]-y[-3])/dt/2
+
+    return vx,vy
+
+inputFolder = './archivosGerman/pedestrianTrajectories/'
+outputFolder = './archivosGerman/pedestrianTrajectoriesProcessedSmoothAndFilter/'
+import os
+os.makedirs(outputFolder, exist_ok=True)
+
+DIST_AB = 30 # metros
+FPS = 60 # cuadros por segundo
+
+HEIGHT = 30 # metros, altura drone
+alturas = np.array([1.69,1.6,1.69,1.69,1.71,1.75,1.80,1.80,1.81,1.82,1.82,1.83,1.83,1.82])
+
+# PUNTOS DE REFERENCIA FIJOS DE LA CANCHA
+puntoA = np.loadtxt(inputFolder+'puntoA.txt')
+puntoB = np.loadtxt(inputFolder+'puntoB.txt')
+
+# POSICIONES DE LOS PEATONES
+inputFile = glob.glob(inputFolder+'ped*.txt')
+inputFile.sort()
+# Print names of input files
+
+for i in range(len(inputFile)):
+    ped = np.loadtxt(inputFile[i])
+    print(inputFile[i])
+    xA = puntoA[int(ped[0,0]):int(ped[-1,0])+1,2]
+    yA = puntoA[int(ped[0,0]):int(ped[-1,0])+1,3]
+    xB = puntoB[int(ped[0,0]):int(ped[-1,0])+1,2]
+    yB = puntoB[int(ped[0,0]):int(ped[-1,0])+1,3]
+    r = np.sqrt((xB-xA)**2+(yB-yA)**2)
+
+    # CORRIJO LA POSICIONES SEGUN LA PROYECCION (QUIERO LA POSICION DE LA CABEZA SOBRE EL PLANO DEL SUELO)
+
+    x = ped[:,2]*(1-alturas[i]/HEIGHT)-xA
+    y = ped[:,3]*(1-alturas[i]/HEIGHT)-yA
+
+    # ROTO EL SISTEMA DE REFERENCIA
+
+    X = ((xB-xA)*x+(yB-yA)*y)/r/r*DIST_AB
+    Y = (-(yB-yA)*x+(xB-xA)*y)/r/r*DIST_AB
+
+    # SMOOTHING DE LAS POSICIONES
+    X = savgol_filter(X, window_length=7, polyorder=3) # Hasta ahora: 7 y 3
+    Y = savgol_filter(Y, window_length=7, polyorder=3)
+
+    # CALCULO LAS VELOCIDADES USANDO DIFERENCIAS FINITAS DE LAS POSICIONES EN DISTINTOS TIEMPOS
+
+    VX,VY = velocities(X,Y,1/FPS)
+    t = np.arange(0,len(ped))/FPS
+    VX_clean = hampel_filter(VX, window_size=19, n_sigmas=2) # Hasta ahora: 19 y 2 (un desvio estandar por 0.3 segundos)
+    VY_clean = hampel_filter(VY, window_size=19, n_sigmas=2)
+
+    # GUARDO LOS DATOS
+
+    data = np.c_[t,X,Y,VX_clean,VY_clean] # Para evitar el smoothing cambiar esto a VX y VY
+    outFile = 'tXYvXvY' + str(i).zfill(2) + '.txt'
+    np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
+  
