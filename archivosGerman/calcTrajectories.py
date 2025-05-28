@@ -117,7 +117,7 @@ def five_point_stencil(x,y,dt):
     return vx,vy
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/stencilMovingAverageHampel/'
+outputFolder = './archivosGerman/MovingAverageStencilHampel/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -158,15 +158,16 @@ for i in range(len(inputFile)):
     # SMOOTHING DE LAS POSICIONES
     #X = savgol_filter(X, window_length=7, polyorder=3) # Hasta ahora: 7 y 3
     #Y = savgol_filter(Y, window_length=7, polyorder=3)
+    X_smooth = moving_average_smoothing(X, window_size=5)
+    Y_smooth = moving_average_smoothing(Y, window_size=5)
 
     # CALCULO LAS VELOCIDADES USANDO DIFERENCIAS FINITAS DE LAS POSICIONES EN DISTINTOS TIEMPOS
 
-    VX,VY = five_point_stencil(X,Y,1/FPS)
+    VX,VY = five_point_stencil(X_smooth,Y_smooth,1/FPS)
     t = np.arange(0,len(ped))/FPS
-    #VX_clean = hampel_filter(VX, window_size=19, n_sigmas=2) # Hasta ahora: 19 y 2 (un desvio estandar por 0.3 segundos)
-    #VY_clean = hampel_filter(VY, window_size=19, n_sigmas=2)
-    VX_clean = hampel_filter(moving_average_smoothing(VX, window_size=5), 19, 2)
-    VY_clean = hampel_filter(moving_average_smoothing(VY, window_size=5), 19, 2)
+
+    VX_clean = hampel_filter(VX, 19, 2)
+    VY_clean = hampel_filter(VY, 19, 2)
     # GUARDO LOS DATOS
 
     #data = np.c_[t,X,Y,VX,VY]

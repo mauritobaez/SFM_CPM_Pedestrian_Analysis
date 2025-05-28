@@ -8,16 +8,17 @@ folders = [
     #"diferenciasFinitas",
     #"diferenciasFinitasSmoothAndFilter",
     #"pedestrianTrajectoriesProcessed",
-    "pedestrianTrajectoriesProcessedSmoothAndFilter",
+    #"pedestrianTrajectoriesProcessedSmoothAndFilter",
     #"stencilMovingAverage",
-    "stencilMovingAverageHampel"
+    "stencilMovingAverageHampel",
+    "MovingAverageStencilHampel"
 ]
 
 colors = [
     #"red",
-    #"blue",
+    "blue",
     #"green",
-    "orange",
+    #"orange",
     #"purple",
     "green"
 ]
@@ -26,9 +27,10 @@ names = [
     #"finite difference",
     #"fd smooth and filter",
     #"5 point stencil",
-    "5pt Savitzky-Golay + Hampel",
+    #"5pt Savitzky-Golay + Hampel",
     #"5pt moving average",
-    "5pt moving average + Hampel"
+    "5pt moving average + Hampel",
+    "Moving Average over x and y + Hampel"
 ]
 
 figures = {}
@@ -79,12 +81,12 @@ for key in keys:
         showlegend=True,
     )
 
-    #fig.show()
-    fig.write_image(
-        f"./smoothing_compared/speed_comparison_{key}.png",
-        width=1920,
-        height=1080,
-        scale=4  # Higher scale for better resolution
-    )
+    fig.show()
+    #fig.write_image(
+    #    f"./smoothing_compared/speed_comparison_{key}.png",
+    #    width=1920,
+    #    height=1080,
+    #    scale=4  # Higher scale for better resolution
+    #)
 
 
