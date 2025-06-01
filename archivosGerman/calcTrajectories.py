@@ -117,7 +117,7 @@ def five_point_stencil(x,y,dt):
     return vx,vy
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/MovingAverageStencilHampel/'
+outputFolder = './archivosGerman/NewPedestriansMovAvg_5PS_Ham/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -172,6 +172,6 @@ for i in range(len(inputFile)):
 
     #data = np.c_[t,X,Y,VX,VY]
     data = np.c_[t,X,Y,VX_clean,VY_clean]   # Para evitar el smoothing cambiar esto a VX y VY
-    outFile = 'tXYvXvY' + str(i).zfill(2) + '.txt'
+    outFile = 'tXYvXvY' + str(i+1).zfill(2) + '.txt'
     np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
   

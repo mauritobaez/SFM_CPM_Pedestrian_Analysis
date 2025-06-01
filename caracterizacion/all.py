@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 
 
-FILES_TO_USE = [i for i in range(0, 14)]
+FILES_TO_USE = [i for i in range(1, 15)]
 
 folders = [
     #"diferenciasFinitas",
@@ -10,17 +10,18 @@ folders = [
     #"pedestrianTrajectoriesProcessed",
     #"pedestrianTrajectoriesProcessedSmoothAndFilter",
     #"stencilMovingAverage",
-    "stencilMovingAverageHampel",
-    "MovingAverageStencilHampel"
+    #"stencilMovingAverageHampel",
+    #"MovingAverageStencilHampel",
+    "newPedestriansMovAvg_5PS_Ham",
 ]
 
 colors = [
-    #"red",
-    "blue",
+    "red",
+    #"blue",
     #"green",
     #"orange",
     #"purple",
-    "green"
+    #"green"
 ]
 
 names = [
@@ -29,8 +30,9 @@ names = [
     #"5 point stencil",
     #"5pt Savitzky-Golay + Hampel",
     #"5pt moving average",
-    "5pt moving average + Hampel",
-    "Moving Average over x and y + Hampel"
+    #"5pt moving average + Hampel",
+    #"Moving Average over x and y + Hampel",
+    "Mov Avg + 5pt + Hampel",
 ]
 
 figures = {}
@@ -83,7 +85,7 @@ for key in keys:
 
     fig.show()
     #fig.write_image(
-    #    f"./smoothing_compared/speed_comparison_{key}.png",
+    #    f"./new_pedestrians/speeds_{key}.png",
     #    width=1920,
     #    height=1080,
     #    scale=4  # Higher scale for better resolution
