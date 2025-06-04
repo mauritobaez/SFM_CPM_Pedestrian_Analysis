@@ -11,6 +11,8 @@ for i in FILES_TO_USE:
     keys.append(key)
 
 figures = {}
+all_stops = {}
+times = {}
 
 for key in keys:
     time = []
@@ -28,7 +30,7 @@ for key in keys:
         y.append(float(line_values[2]))
         vX.append(float(line_values[3]))
         vY.append(float(line_values[4]))
-    
+    times[key] = time
     velocities = []
     
     max_speed = 0.21 if key == '12' else 0.16
@@ -46,7 +48,7 @@ for key in keys:
     for stop in stops:
         add_vertical_line(fig, time[stop[0]])
         add_vertical_line(fig, time[stop[1]])
-        add_horizontal_line(fig, time[stop[0]], time[stop[1]], -0.5)
+        add_horizontal_line(fig, time[stop[0]], time[stop[1]], -0.25, width=3)
 
 
     # TODO: Pasar esto a lib.py
@@ -83,7 +85,7 @@ for key in keys:
     for index, end in enumerate(end_of_gaussian):
         add_vertical_line(fig, time[stops[index][1]], color='green')
         add_vertical_line(fig, end, color='green')
-        add_horizontal_line(fig, time[stops[index][1]], end, 2, color='green')
+        add_horizontal_line(fig, time[stops[index][1]], end, 2, color='green', width=3)
 
     fig.add_trace(go.Scatter(
         x=[None], y=[None],
@@ -105,6 +107,8 @@ for key in keys:
         line=dict(color='orange', dash='dash'),
         name='Separation Acc and Dec'
     ))
+
+    all_stops[key] = stops
     
 for key in keys:
     fig = figures[key]
@@ -117,6 +121,18 @@ for key in keys:
         yaxis_title="Speed (m/s)",
         template="plotly_white",
         showlegend=True,
+        font=dict(size=24),  # Increase font size
+        title_font=dict(size=28),  # Increase title font size
+        xaxis=dict(title_font=dict(size=24), tickfont=dict(size=20)),
+        yaxis=dict(title_font=dict(size=24), tickfont=dict(size=20)),
+        legend=dict(font=dict(size=20))
     )
+    #fig.update_xaxes(range=[times[key][all_stops[key][1][0]], times[key][all_stops[key][4][1]]])
 
-    fig.show()
+    #fig.show()
+    fig.write_image(
+        f"./all_images/acceleration_criteria/speeds_{key}.png",
+        width=1920,
+        height=1080,
+        scale=4  # Higher scale for better resolution
+    )

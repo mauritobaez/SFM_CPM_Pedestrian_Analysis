@@ -21,7 +21,7 @@ def add_vertical_line(fig, x, color='blue', width=1):
         type="line",
         x0=x,
         x1=x,
-        y0=-0.5,
+        y0=-0.25,
         y1=2,
         line=dict(color=color, width=width, dash="dash"),
         layer="below"
@@ -70,12 +70,14 @@ def gaussian(index_when_stopped, time, vX, vY):
         direction_vel = vY if index_number_stop == 2 or index_number_stop == 5 else vX
         curr_mean, curr_std_dev = gaussian_distibution[index_number_stop]
         
-        for j in range(index_stop[1], int(index_stop[1] + TICKS_MIN_TIME_AFTER_STOP)):
+        for j in range(index_stop[1], int(index_stop[1] + (TICKS_MIN_TIME_AFTER_STOP+ TICKS_MAX_TIME_AFTER_STOP) / 2)):
             if j < len(time):
                 vel_importante = abs(direction_vel[j])
                 
                 if curr_mean - curr_std_dev < vel_importante and curr_mean + curr_std_dev > vel_importante:
                     moments_finish_acc.append(time[j])
                     break
+        #if j == index_stop[1] + TICKS_MIN_TIME_AFTER_STOP - 1:
+        #    moments_finish_acc.append(time[j])
         #print(f"{index_stop[1]} j: {j}")
     return moments_finish_acc
