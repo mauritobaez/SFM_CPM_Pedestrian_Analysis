@@ -1,4 +1,4 @@
-from lib import add_horizontal_line, add_vertical_line, get_stops_complete
+from lib import add_horizontal_line, add_vertical_line, gaussian, get_stops_complete
 import plotly.graph_objects as go
 
 
@@ -33,7 +33,7 @@ for key in keys:
     
     max_speed = 0.21 if key == '12' else 0.16
     stops = get_stops_complete(max_speed, time, vX, vY)
-    print(f"File {key} has {len(stops)} stops")
+    #print(f"File {key} has {len(stops)} stops")
 
     #for i in range(len(time)):
     #    velocities.append(max(abs(vX[i]),abs(vY[i])))
@@ -48,6 +48,8 @@ for key in keys:
         add_vertical_line(fig, time[stop[1]])
         add_horizontal_line(fig, time[stop[0]], time[stop[1]], -0.5)
 
+
+    # TODO: Pasar esto a lib.py
     curr_index = 0
     stop_index = 0
     first_stop = stops[0][0]
@@ -70,9 +72,39 @@ for key in keys:
             #print(f"Curr meter: {curr_meter}, time: {time[curr_index]}")    
         curr_index += 1
         
-    fig.add_trace(go.Scatter(x=time, y=curr_rapidez, mode='lines', name="Hola", line=dict(color='red')))
+    fig.add_trace(go.Scatter(x=time, y=curr_rapidez, mode='lines', line=dict(color='red'), showlegend=False))
+
     for middle in middles:
         add_vertical_line(fig, middle, color='orange')
+
+    # Ahora el gaussiano
+    end_of_gaussian = gaussian(stops, time, vX, vY)
+    #print(end_of_gaussian)
+    for index, end in enumerate(end_of_gaussian):
+        add_vertical_line(fig, time[stops[index][1]], color='green')
+        add_vertical_line(fig, end, color='green')
+        add_horizontal_line(fig, time[stops[index][1]], end, 2, color='green')
+
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='green', dash='dash'),
+        name='Gaussian Acceleration'
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='blue', dash='dash'),
+        name='Stop period'
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode='lines',
+        line=dict(color='orange', dash='dash'),
+        name='Separation Acc and Dec'
+    ))
     
 for key in keys:
     fig = figures[key]
