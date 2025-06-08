@@ -9,6 +9,26 @@ import numpy as np
 import glob
 from scipy.signal import savgol_filter
 
+def fft_filter(signal, fs, highcut):
+    """
+    signal: array 1D de la señal a filtrar
+    fs: frecuencia de muestreo
+    lowcut: frecuencia mínima del filtro
+    highcut: frecuencia máxima del filtro
+    """
+    fft_vals = np.fft.fft(signal)
+    freqs = np.fft.fftfreq(len(signal), 1/fs)
+    
+    # Crear un filtro pasabanda
+    band = (np.abs(freqs) > highcut)
+    filtered_fft = fft_vals.copy()
+    filtered_fft[band] = 0
+    
+    # Inversa FFT para obtener la señal filtrada
+    filtered_signal = np.fft.ifft(filtered_fft).real
+    
+    return filtered_signal
+
 def hampel_filter(v, window_size=7, n_sigmas=3):
     """
     v: array 1D de velocidades (o posiciones)
@@ -117,7 +137,7 @@ def five_point_stencil(x,y,dt):
     return vx,vy
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/NewPedestriansMovAvg_5PS_Ham/'
+outputFolder = './archivosGerman/fft1p2/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -168,10 +188,11 @@ for i in range(len(inputFile)):
 
     VX_clean = hampel_filter(VX, 19, 2)
     VY_clean = hampel_filter(VY, 19, 2)
-    # GUARDO LOS DATOS
+    
+    vx_fft = fft_filter(VX_clean, fs=FPS, highcut=1.2)
+    vy_fft = fft_filter(VY_clean, fs=FPS, highcut=1.2)
 
-    #data = np.c_[t,X,Y,VX,VY]
-    data = np.c_[t,X,Y,VX_clean,VY_clean]   # Para evitar el smoothing cambiar esto a VX y VY
+    data = np.c_[t,X,Y,vx_fft,vy_fft]   # Para evitar el smoothing cambiar esto a VX y VY
     outFile = 'tXYvXvY' + str(i+1).zfill(2) + '.txt'
     np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
   

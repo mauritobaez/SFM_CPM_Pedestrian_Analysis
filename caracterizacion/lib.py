@@ -15,6 +15,23 @@ def get_stops_complete(max_speed, time, vX, vY):
 
     return curr_index_when_stopped
 
+def get_between_indexes(first_index, last_index, v):
+    velocities = []
+    for i in range(first_index, last_index + 1):
+        velocities.append(abs(v[i]))
+    return velocities
+
+def get_all_values(time, vX, vY, stops):
+    stop_index = 0
+    velocities = []
+    direction_vel = vX
+    for i in range(len(time)):
+        if stop_index < len(stops)-1 and i > stops[stop_index+1][0]:
+            stop_index += 1
+            direction_vel = vY if stop_index == 2 or stop_index == 5 else vX
+        velocities.append(abs(direction_vel[i]))
+    return velocities
+
 
 def add_vertical_line(fig, x, color='blue', width=1):
     fig.add_shape(

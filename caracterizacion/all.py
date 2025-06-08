@@ -1,6 +1,6 @@
 
 import plotly.graph_objects as go
-
+import os
 
 FILES_TO_USE = [i for i in range(1, 15)]
 
@@ -12,12 +12,14 @@ folders = [
     #"stencilMovingAverage",
     #"stencilMovingAverageHampel",
     #"MovingAverageStencilHampel",
-    "newPedestriansMovAvg_5PS_Ham",
+    #"newPedestriansMovAvg_5PS_Ham",
+    "fft1p5",
+    #"fft2",
 ]
 
 colors = [
-    "red",
-    #"blue",
+    #"red",
+    "blue",
     #"green",
     #"orange",
     #"purple",
@@ -32,7 +34,9 @@ names = [
     #"5pt moving average",
     #"5pt moving average + Hampel",
     #"Moving Average over x and y + Hampel",
-    "Mov Avg + 5pt + Hampel",
+    #"Mov Avg + 5pt + Hampel",
+    "Mov Avg + 5pt + Hampel + FFT 1.5Hz",
+    #"Mov Avg + 5pt + Hampel + FFT 2Hz",
 ]
 
 figures = {}
@@ -67,7 +71,7 @@ for index, folder_name in enumerate(folders):
         if key not in figures:
             figures[key] = go.Figure()   
         fig = figures[key]
-        fig.add_trace(go.Scatter(x=time, y=velocities, mode='lines', name=names[index], line=dict(color=colors[index]), opacity=1 if index == 0 else 0.5))
+        fig.add_trace(go.Scatter(x=time, y=velocities, mode='lines', name=names[index], line=dict(color=colors[index]), opacity=1 if index == 0 else 0.8))
         
         
 for key in keys:
@@ -84,8 +88,11 @@ for key in keys:
     )
 
     fig.show()
+    #name = "fft_comparison"
+    #if not os.path.exists(f"./{name}"):
+    #    os.makedirs(f"./{name}")
     #fig.write_image(
-    #    f"./new_pedestrians/speeds_{key}.png",
+    #    f"./{name}/speeds_{key}.png",
     #    width=1920,
     #    height=1080,
     #    scale=4  # Higher scale for better resolution
