@@ -137,7 +137,7 @@ def five_point_stencil(x,y,dt):
     return vx,vy
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/fft1p2/'
+outputFolder = './archivosGerman/fft0p5/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -189,8 +189,8 @@ for i in range(len(inputFile)):
     VX_clean = hampel_filter(VX, 19, 2)
     VY_clean = hampel_filter(VY, 19, 2)
     
-    vx_fft = fft_filter(VX_clean, fs=FPS, highcut=1.2)
-    vy_fft = fft_filter(VY_clean, fs=FPS, highcut=1.2)
+    vx_fft = fft_filter(VX_clean, fs=FPS, highcut=0.5)
+    vy_fft = fft_filter(VY_clean, fs=FPS, highcut=0.5)
 
     data = np.c_[t,X,Y,vx_fft,vy_fft]   # Para evitar el smoothing cambiar esto a VX y VY
     outFile = 'tXYvXvY' + str(i+1).zfill(2) + '.txt'

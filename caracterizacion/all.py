@@ -14,13 +14,14 @@ folders = [
     #"MovingAverageStencilHampel",
     #"newPedestriansMovAvg_5PS_Ham",
     "fft1p5",
-    #"fft2",
+    "fft1",
+    "fft0p5",
 ]
 
 colors = [
-    #"red",
+    "red",
     "blue",
-    #"green",
+    "green",
     #"orange",
     #"purple",
     #"green"
@@ -36,7 +37,8 @@ names = [
     #"Moving Average over x and y + Hampel",
     #"Mov Avg + 5pt + Hampel",
     "Mov Avg + 5pt + Hampel + FFT 1.5Hz",
-    #"Mov Avg + 5pt + Hampel + FFT 2Hz",
+    "Mov Avg + 5pt + Hampel + FFT 1Hz",
+    "Mov Avg + 5pt + Hampel + FFT 0.5Hz",
 ]
 
 figures = {}
@@ -87,15 +89,15 @@ for key in keys:
         showlegend=True,
     )
 
-    fig.show()
-    #name = "fft_comparison"
-    #if not os.path.exists(f"./{name}"):
-    #    os.makedirs(f"./{name}")
-    #fig.write_image(
-    #    f"./{name}/speeds_{key}.png",
-    #    width=1920,
-    #    height=1080,
-    #    scale=4  # Higher scale for better resolution
-    #)
+    #fig.show()
+    name = "multiple_fft_comparison"
+    if not os.path.exists(f"./{name}"):
+        os.makedirs(f"./{name}")
+    fig.write_image(
+        f"./{name}/speeds_{key}.png",
+        width=1920,
+        height=1080,
+        scale=4  # Higher scale for better resolution
+    )
 
 
