@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 import os
 
-FILES_TO_USE = [i for i in range(1, 15)]
+FILES_TO_USE = [4]# [i for i in range(1, 15)]
 
 folders = [
     #"diferenciasFinitas",
@@ -13,15 +13,15 @@ folders = [
     #"stencilMovingAverageHampel",
     #"MovingAverageStencilHampel",
     #"newPedestriansMovAvg_5PS_Ham",
-    "fft1p5",
-    "fft1",
+    #"fft1p5",
+    #"fft1",
     "fft0p5",
 ]
 
 colors = [
     "red",
-    "blue",
-    "green",
+    #"blue",
+    #"green",
     #"orange",
     #"purple",
     #"green"
@@ -36,8 +36,8 @@ names = [
     #"5pt moving average + Hampel",
     #"Moving Average over x and y + Hampel",
     #"Mov Avg + 5pt + Hampel",
-    "Mov Avg + 5pt + Hampel + FFT 1.5Hz",
-    "Mov Avg + 5pt + Hampel + FFT 1Hz",
+    #"Mov Avg + 5pt + Hampel + FFT 1.5Hz",
+    #"Mov Avg + 5pt + Hampel + FFT 1Hz",
     "Mov Avg + 5pt + Hampel + FFT 0.5Hz",
 ]
 
@@ -89,15 +89,15 @@ for key in keys:
         showlegend=True,
     )
 
-    #fig.show()
-    name = "multiple_fft_comparison"
-    if not os.path.exists(f"./{name}"):
-        os.makedirs(f"./{name}")
-    fig.write_image(
-        f"./{name}/speeds_{key}.png",
-        width=1920,
-        height=1080,
-        scale=4  # Higher scale for better resolution
-    )
+    fig.show()
+    #name = "multiple_fft_comparison"
+    #if not os.path.exists(f"./{name}"):
+    #    os.makedirs(f"./{name}")
+    #fig.write_image(
+    #    f"./{name}/speeds_{key}.png",
+    #    width=1920,
+    #    height=1080,
+    #    scale=4  # Higher scale for better resolution
+    #)
 
 

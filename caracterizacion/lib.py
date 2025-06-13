@@ -32,8 +32,22 @@ def get_all_values(time, vX, vY, stops):
         velocities.append(abs(direction_vel[i]))
     return velocities
 
+def get_all_values_and_positions(time, vX, vY, x, y, stops):
+    stop_index = 0
+    velocities = []
+    positions = []
+    direction_vel = vX
+    direction_walk = x
+    for i in range(len(time)):
+        if stop_index < len(stops)-1 and i > stops[stop_index+1][0]:
+            stop_index += 1
+            direction_vel = vY if stop_index == 2 or stop_index == 5 else vX
+            direction_walk = y if stop_index == 2 or stop_index == 5 else x
+        velocities.append(abs(direction_vel[i]))
+        positions.append(direction_walk[i])
+    return velocities, positions
 
-def add_vertical_line(fig, x, color='blue', width=1):
+def add_vertical_line(fig, x, color='blue', width=1, showlegend=False, legend=""):    
     fig.add_shape(
         type="line",
         x0=x,
@@ -41,7 +55,9 @@ def add_vertical_line(fig, x, color='blue', width=1):
         y0=-0.25,
         y1=2,
         line=dict(color=color, width=width, dash="dash"),
-        layer="below"
+        layer="below",
+        showlegend=showlegend,
+        name=legend
     )
 
 def add_horizontal_line(fig, first_x, second_x, altura, color='blue', width=1):
@@ -98,3 +114,16 @@ def gaussian(index_when_stopped, time, vX, vY):
         #    moments_finish_acc.append(time[j])
         #print(f"{index_stop[1]} j: {j}")
     return moments_finish_acc
+
+def get_middles(positions, stops):
+    middles = []
+    for _, end_stop in stops:
+        curr_index = end_stop
+        curr_meter = positions[end_stop]
+        while curr_index < len(positions):
+            if 3.25 < abs(curr_meter - positions[curr_index]):
+                middles.append(curr_index)
+                break
+            curr_index += 1
+    
+    return middles
