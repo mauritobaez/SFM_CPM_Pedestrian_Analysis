@@ -1,37 +1,50 @@
+import numpy as np
 
 
 
-def linear_regression(velocities, time, index_start, index_end, c):
-    initial_velocity = velocities[index_start]
+def linear_regression(velocities, time, index_start, index_end, c, b):
+    initial_velocity = b
     initial_time = time[index_start]
     return sum([(velocities[i] - (c * (time[i]-initial_time) + initial_velocity)) ** 2 for i in range(index_start, index_end + 1)])
 
 def linear_regression_best(velocities, time, index_start, index_end):
-    min_error = float('inf')
-    best_c = None
-    for c in [i * 0.002 for i in range(-1100, 10)]:
-        error = linear_regression(velocities, time, index_start, index_end, c)
-        if error < min_error:
-            min_error = error
-            best_c = c
-    
-    return best_c, min_error
+    # Zero-base the time array for the regression segment
+    time_segment = np.array(time[index_start:index_end + 1])
+    time_zeroed = time_segment - time_segment[0]
+    velocities_segment = np.array(velocities[index_start:index_end + 1])
+    # Fit a line: y = m*x + b
+    best_m, best_b = np.polyfit(time_zeroed, velocities_segment, 1)
+    # Compute predicted velocities
+    predicted = best_m * time_zeroed + best_b
+    # Compute least squares error (cost)
+    error = np.sum((velocities_segment - predicted) ** 2)
+    return best_m, best_b, error
 
 def double_linear_regression(complete_velocities, time, index_start, index_end):
-    best_index = float('inf')
+    best_time = -1
     best_error = float('inf')
-    best_first_c = None
-    best_second_c = None
+    best_first_m = None
+    best_second_m = None
     for i in range(index_start, index_end+1):
-        first_c, first_error = linear_regression_best(complete_velocities, time, index_start, i)
-        second_c, second_error = linear_regression_best(complete_velocities, time, i, index_end)
+        if abs(i - index_start) < 2 or abs(index_end - i) < 2:
+            continue
+        first_m, first_b, first_error = linear_regression_best(complete_velocities, time, index_start, i)
+        second_m, second_b, second_error = linear_regression_best(complete_velocities, time, i, index_end)
         if first_error + second_error < best_error:
             best_error = first_error + second_error
-            best_index = i
-            best_first_c = first_c
-            best_second_c = second_c
+            # Calculate intersection point between the two lines: first_m*x + first_b = second_m*x + second_b
+            if first_m != second_m:
+                numerator = first_m * time[index_start] - second_m * time[i] + second_b - first_b
+                denominator = first_m - second_m
+                best_time = numerator / denominator
+            else:
+                best_time = i  # fallback if lines are parallel
+            best_first_m = first_m
+            best_second_m = second_m
+            best_first_b = first_b
+            best_second_b = second_b
 
-    return best_index, best_first_c, best_second_c
+    return best_time, best_first_m, best_second_m, best_first_b, best_second_b
 
 
 

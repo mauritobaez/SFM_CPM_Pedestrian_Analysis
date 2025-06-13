@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 import os
 
-FILES_TO_USE = [4]# [i for i in range(1, 15)]
+FILES_TO_USE = [12]# [i for i in range(1, 15)]
 
 folders = [
     #"diferenciasFinitas",

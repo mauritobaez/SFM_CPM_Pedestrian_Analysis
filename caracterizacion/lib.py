@@ -6,7 +6,7 @@ def get_stops_complete(max_speed, time, vX, vY):
     last_time = None
 
     for i in range(len(time)):
-        if (vX[i] < max_speed and vX[i] > -max_speed and vY[i] < max_speed and vY[i] > -max_speed) or i == 0:
+        if abs(vX[i]) < max_speed and abs(vY[i]) < max_speed or i == 0:
             if last_time is None or time[i] - last_time > 1:
                 curr_index_when_stopped.append((i, i))
             else:
@@ -31,6 +31,41 @@ def get_all_values(time, vX, vY, stops):
             direction_vel = vY if stop_index == 2 or stop_index == 5 else vX
         velocities.append(abs(direction_vel[i]))
     return velocities
+
+# Esto es para tener en cuenta los minimos siguientes a un stop, es innecesariamente ineficiente hacerlo con otra función
+# Debería estar en get_stops_complete
+def get_reduced_stops(stops, velocities):
+    reduced_stops = []
+    for i in range(len(stops)):
+        beg_stop, end_stop = stops[i]
+        reduced_stops.append(stops[i])
+        if beg_stop == 0:
+            continue
+        current_index = beg_stop
+        min = velocities[beg_stop]
+        index_min = beg_stop
+        
+        while current_index <= end_stop:
+            if velocities[current_index] - min > 0.01:
+                reduced_stops[i] = (index_min, end_stop)
+                break
+            if velocities[current_index] < min:
+                min = velocities[current_index]
+                index_min = current_index
+            current_index += 1
+
+        current_index = end_stop
+        min = velocities[end_stop]
+        index_min = end_stop
+        while current_index >= beg_stop:
+            if velocities[current_index] - min > 0.01:
+                reduced_stops[i] = (reduced_stops[i][0], index_min)
+                break
+            if velocities[current_index] < min:
+                min = velocities[current_index]
+                index_min = current_index
+            current_index -= 1
+    return reduced_stops
 
 def get_all_values_and_positions(time, vX, vY, x, y, stops):
     stop_index = 0
