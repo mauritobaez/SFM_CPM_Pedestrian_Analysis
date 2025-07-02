@@ -82,7 +82,7 @@ def get_all_values_and_positions(time, vX, vY, x, y, stops):
         positions.append(direction_walk[i])
     return velocities, positions
 
-def add_vertical_line(fig, x, color='blue', width=1, showlegend=False, legend=""):    
+def add_vertical_line(fig, x, color='blue', width=5, showlegend=False, legend=""):    
     fig.add_shape(
         type="line",
         x0=x,
@@ -162,3 +162,14 @@ def get_middles(positions, stops):
             curr_index += 1
     
     return middles
+
+
+def get_avg_speeds_around_positions(positions_index, x, meters_around=0.5):
+    avg_speeds = []
+    FPS = 60
+    for pos in positions_index:
+        start_index = max(0, pos - int(meters_around * FPS))
+        end_index = min(len(x), pos + int(meters_around * FPS))
+        avg_speed = statistics.mean(x[start_index:end_index])
+        avg_speeds.append(avg_speed)
+    return avg_speeds

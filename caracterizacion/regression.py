@@ -2,10 +2,10 @@ import numpy as np
 
 
 
-def linear_regression(velocities, time, index_start, index_end, c, b):
-    initial_velocity = b
-    initial_time = time[index_start]
-    return sum([(velocities[i] - (c * (time[i]-initial_time) + initial_velocity)) ** 2 for i in range(index_start, index_end + 1)])
+#def linear_regression(velocities, time, index_start, index_end, c, b):
+#    initial_velocity = b
+#    initial_time = time[index_start]
+#    return sum([(velocities[i] - (c * (time[i]-initial_time) + initial_velocity)) ** 2 for i in range(index_start, index_end + 1)])
 
 def linear_regression_best(velocities, time, index_start, index_end):
     # Zero-base the time array for the regression segment
@@ -34,7 +34,7 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
             best_error = first_error + second_error
             # Calculate intersection point between the two lines: first_m*x + first_b = second_m*x + second_b
             if first_m != second_m:
-                numerator = first_m * time[index_start] - second_m * time[i] + second_b - first_b
+                numerator = first_m * time[index_start] - second_m * time[i] + second_b - first_b   # Lo de time es para ajustarlo porque las líneas no empiezan en el mismo t
                 denominator = first_m - second_m
                 best_time = numerator / denominator
             else:

@@ -1,6 +1,6 @@
 
 import plotly.graph_objects as go
-from lib import add_vertical_line, get_all_values_and_positions, get_middles, get_reduced_stops, get_stops_complete
+from lib import add_vertical_line, get_all_values_and_positions, get_avg_speeds_around_positions, get_middles, get_reduced_stops, get_stops_complete
 from regression import double_linear_regression
 import os
 
@@ -36,27 +36,16 @@ for key in keys:
     velocities = []
     
     max_speed = 0.38 if key == '12' or key == '14' else 0.193 if key == '04' else 0.18 if key == '13' else 0.16
-    max_speed = max_speed if key != '03' else 0.5
     stops = get_stops_complete(max_speed, time, vX, vY)
     
-    #stops = []
-    #stops.append(get_stops_complete(max_speed, time, vX, vY)[0])
-    
-    #print(f"File {key} has {len(stops)} stops")
-
-    #for i in range(len(time)):
-    #    velocities.append(max(abs(vX[i]),abs(vY[i])))
 
     if key not in figures:
         figures[key] = go.Figure()   
     fig = figures[key]
 
     velocities, positions = get_all_values_and_positions(time, vX, vY, x, y, stops)
-    fig.add_trace(go.Scatter(x=time, y=velocities, mode='lines', line=dict(color='red'), opacity=0.4, showlegend=False))
-    
-    #print(stops)
+    fig.add_trace(go.Scatter(x=time, y=velocities, mode='markers', marker=dict(color='red', size=4), opacity=0.4, showlegend=False))  
     stops = get_reduced_stops(stops, velocities)
-    #print(stops)
     all_stops[key] = stops
 
     middles = get_middles(positions, stops)
@@ -68,22 +57,22 @@ for key in keys:
     for i in range(min(len(stops)-1, len(middles))):
         mid = middles[i]
         beg_next_stop = stops[i+1][0]
-        #print(f"Middle: {mid/60}, Next Stop: {beg_next_stop/60}")
-        add_vertical_line(fig, time[beg_next_stop], color='orange', width=2, showlegend=False, legend='Start of Stop')
         best_time, first_c, second_c, first_b, second_b = double_linear_regression(velocities, time, mid, beg_next_stop)
         dea_begginings.append((best_time, first_c, second_c, first_b, second_b))
         #print(f"message {i}")
-    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='orange', dash='dash', width=3),name='Start of Stop',showlegend=True))
 
     for curr_stop in stops:
-        add_vertical_line(fig, time[curr_stop[1]], color='blue', width=2, showlegend=False)
+        add_vertical_line(fig, time[curr_stop[0]], color='orange', width=5, showlegend=False, legend='Start of Stop')
+        add_vertical_line(fig, time[curr_stop[1]], color='blue', width=5, showlegend=False)
+    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='orange', dash='dash', width=3),name='Start of Stop',showlegend=True))
     fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='blue', dash='dash', width=3),name='End of Stop',showlegend=True))
+    
 
     for best_time, first_c, second_c, first_b, second_b in dea_begginings:
         #print(f"First c: {first_c}, Second c: {second_c}, Index: {best_time}, first b: {first_b}, second b: {second_b}")
         if first_c is None:
             continue
-        add_vertical_line(fig, best_time, color='green', width=2, showlegend=False, legend='Deaceleration Start')
+        add_vertical_line(fig, best_time, color='green', width=5, showlegend=False, legend='Deaceleration Start')
 
     fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='green', dash='dash', width=3),name='Deaceleration Start',showlegend=True))
     fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='black', dash='dash', width=3),name='Middle',showlegend=True))
@@ -92,7 +81,20 @@ for key in keys:
     for i, mid in enumerate(middles):
         if i >= len(dea_begginings):
             break
-        add_vertical_line(fig, time[mid], color='black', width=2)
+        add_vertical_line(fig, time[mid], color='black', width=5)
+
+    # Velocidad alrededor del middle
+    avg_speeds = get_avg_speeds_around_positions(positions_index=middles, x=x, meters_around=0.5)
+    for avg_spd, mid in zip(avg_speeds, middles):
+        fig.add_annotation(x=mid,y=avg_spd+0.2,text=f"{avg_spd:.2f}",font=dict(size=18, color="purple"),ax=0,ay=-40,bgcolor="rgba(255,255,255,0.7)",bordercolor="purple")
+    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='purple', dash='dash', width=3),name='Average speed (near middle)',showlegend=True))
+
+    # Checking if start deaceleration is 70% or less below avg_speed
+    for i, (best_time, _, _, _, _) in enumerate(dea_begginings):
+        mid_avg_spd = avg_speeds[i]
+        if velocities[int(best_time*60)] < mid_avg_spd * 0.7:
+            fig.add_annotation(x=best_time,y=velocities[int(best_time*60)]+0.2,text=f"*",font=dict(size=24, color="yellow"),ax=0,ay=-40,bgcolor="rgba(255,255,255,0.7)",bordercolor="red")
+
 
     fig.update_xaxes(showgrid=False, dtick=5) 
     fig.update_yaxes(showgrid=False)
