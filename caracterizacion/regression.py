@@ -25,6 +25,7 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
     best_error = float('inf')
     best_first_m = None
     best_second_m = None
+    best_i = -1
     for i in range(index_start, index_end+1):
         if abs(i - index_start) < 2 or abs(index_end - i) < 2:
             continue
@@ -38,12 +39,15 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
                 denominator = first_m - second_m
                 best_time = numerator / denominator
             else:
+                print(f"Warning: Lines are parallel at indices {index_start} and {index_end}, using index {i} as fallback.")
                 best_time = i  # fallback if lines are parallel
             best_first_m = first_m
             best_second_m = second_m
             best_first_b = first_b
             best_second_b = second_b
-
+            best_i = i
+    
+    print(f"Best i: {best_i}, best i / 60: {best_i/60}, Best time: {best_time}")
     return best_time, best_first_m, best_second_m, best_first_b, best_second_b
 
 

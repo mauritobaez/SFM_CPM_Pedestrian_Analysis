@@ -62,21 +62,43 @@ for key in keys:
         #print(f"message {i}")
 
     for curr_stop in stops:
-        add_vertical_line(fig, time[curr_stop[0]], color='orange', width=5, showlegend=False, legend='Start of Stop')
+        add_vertical_line(fig, time[curr_stop[0]], color='orange', width=5, showlegend=False, legend='Start of Stop', dash=None)
         add_vertical_line(fig, time[curr_stop[1]], color='blue', width=5, showlegend=False)
-    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='orange', dash='dash', width=3),name='Start of Stop',showlegend=True))
+    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='orange', width=3),name='Start of Stop',showlegend=True))
     fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='blue', dash='dash', width=3),name='End of Stop',showlegend=True))
     
 
     for best_time, first_c, second_c, first_b, second_b in dea_begginings:
-        #print(f"First c: {first_c}, Second c: {second_c}, Index: {best_time}, first b: {first_b}, second b: {second_b}")
+        print(f"First c: {first_c}, Second c: {second_c}, Index: {best_time}, first b: {first_b}, second b: {second_b}")
         if first_c is None:
             continue
-        add_vertical_line(fig, best_time, color='green', width=5, showlegend=False, legend='Deaceleration Start')
+        add_vertical_line(fig, best_time, color='green', width=5, showlegend=False, legend='Deaceleration Start', dash=None)
 
-    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='green', dash='dash', width=3),name='Deaceleration Start',showlegend=True))
+    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='green', width=3),name='Deaceleration Start',showlegend=True))
     fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='black', dash='dash', width=3),name='Middle',showlegend=True))
 
+    ######
+    #for i, mid in enumerate(middles):
+    #    if i >= len(dea_begginings):
+    #        break
+    #    best_time, first_c, _, first_b, _ = dea_begginings[i]
+    #    add_vertical_line(fig, time[mid], color='blue', width=2)
+    #    start_time = time[mid]
+    #    start_velocity = first_b
+    #    trace_times = [time[mid], min(time[mid]+2, best_time)]# time[mid:min(mid+120, int(best_i*60))]
+    #    trace_velocities = [start_velocity + first_c * (t - start_time) for t in trace_times]
+    #    fig.add_trace(go.Scatter(x=trace_times, y=trace_velocities, mode='lines', line=dict(color='purple', dash='dash', width=3), showlegend=False))
+    #fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='blue', dash='dash', width=3),name='Middle',showlegend=True))
+#
+#
+    #for best_time, _, second_c, _, second_b in dea_begginings:
+    #    start_time = best_time
+    #    start_velocity = second_b
+    #    trace_times = [best_time, best_time + 1]
+    #    trace_velocities = [start_velocity + second_c * (t - start_time) for t in trace_times]
+    #    fig.add_trace(go.Scatter(x=trace_times, y=trace_velocities, mode='lines', line=dict(color='purple', dash='dash', width=3), showlegend=False))
+
+    #####
 
     for i, mid in enumerate(middles):
         if i >= len(dea_begginings):
@@ -84,16 +106,16 @@ for key in keys:
         add_vertical_line(fig, time[mid], color='black', width=5)
 
     # Velocidad alrededor del middle
-    avg_speeds = get_avg_speeds_around_positions(positions_index=middles, x=x, meters_around=0.5)
+    avg_speeds = get_avg_speeds_around_positions(positions_index=middles, positions=positions, v=velocities, meters_around=0.5)
     for avg_spd, mid in zip(avg_speeds, middles):
-        fig.add_annotation(x=mid,y=avg_spd+0.2,text=f"{avg_spd:.2f}",font=dict(size=18, color="purple"),ax=0,ay=-40,bgcolor="rgba(255,255,255,0.7)",bordercolor="purple")
-    fig.add_trace(go.Scatter(x=[None], y=[None],mode='lines',line=dict(color='purple', dash='dash', width=3),name='Average speed (near middle)',showlegend=True))
+        fig.add_annotation(x=time[mid],y=avg_spd,text=f"{avg_spd:.2f}",font=dict(size=18, color="purple"),ax=0,ay=-40,bgcolor="rgba(255,255,255,0.7)",bordercolor="purple")
+    fig.add_trace(go.Scatter(x=[None], y=[None],mode='markers',marker=dict(color='purple', size=3),name='Average speed (near middle)',showlegend=True))
 
     # Checking if start deaceleration is 70% or less below avg_speed
     for i, (best_time, _, _, _, _) in enumerate(dea_begginings):
         mid_avg_spd = avg_speeds[i]
         if velocities[int(best_time*60)] < mid_avg_spd * 0.7:
-            fig.add_annotation(x=best_time,y=velocities[int(best_time*60)]+0.2,text=f"*",font=dict(size=24, color="yellow"),ax=0,ay=-40,bgcolor="rgba(255,255,255,0.7)",bordercolor="red")
+            fig.add_annotation(x=best_time,y=velocities[int(best_time*60)]+0.2,text=f"*",font=dict(size=24, color="black"),ax=0,ay=-40,bgcolor="rgba(255,255,255,0.7)",bordercolor="red")
 
 
     fig.update_xaxes(showgrid=False, dtick=5) 
@@ -112,7 +134,7 @@ for key in keys:
     )
 
     #fig.show()
-    name = "all_criteria_together"
+    name = "fix_all_criteria"
     if not os.path.exists(f"./{name}"):
         os.makedirs(f"./{name}")
     fig.write_image(
@@ -134,9 +156,18 @@ for key in keys:
             break
         first = stops[i][0]
         last = stops[i+2][1]
+
+        # Esto es cuando no querés que te aparezca el último del 3, pero sí el anteúltimo. El problema es que también agrega otros que no tienen sentido
+        #if i + 2 < len(stops):
+        #    first = stops[i][0]
+        #    last = stops[i+2][1]
+        #else:
+        #    # Handle the last group if stops is odd or not enough for a group of 3
+        #    first = stops[i][0]
+        #    last = stops[-1][1]
         
         fig.update_layout(
-            title=f"Speed vs Time for {key} (Stop {i} to {i+2})",
+            title=f"Speed vs Time for {key} (Stop {i} to {min(i+2, len(stops)-1)})",
             xaxis_title="Time (s)",
             yaxis_title="Speed (m/s)",
             template="plotly_white",
@@ -149,7 +180,7 @@ for key in keys:
         )
         fig.update_xaxes(range=[time[first], time[last]])
         #fig.show()
-        name = "all_criteria_together"
+        name = "fix_all_criteria"
         if not os.path.exists(f"./{name}"):
             os.makedirs(f"./{name}")
         fig.write_image(

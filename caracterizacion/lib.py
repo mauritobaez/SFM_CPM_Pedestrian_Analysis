@@ -39,31 +39,34 @@ def get_reduced_stops(stops, velocities):
     for i in range(len(stops)):
         beg_stop, end_stop = stops[i]
         reduced_stops.append(stops[i])
-        if beg_stop == 0:
-            continue
+        # No me acuerdo bien por qué está esto
+        #if beg_stop == 0:
+        #    continue
         current_index = beg_stop
         min = velocities[beg_stop]
         index_min = beg_stop
         
         while current_index <= end_stop:
-            if velocities[current_index] - min > 0.01:
+            curr_vel = velocities[current_index]
+            if curr_vel < min:
+                min = curr_vel
+                index_min = current_index
+            if curr_vel - min > 0.001 or curr_vel < 0.08:
                 reduced_stops[i] = (index_min, end_stop)
                 break
-            if velocities[current_index] < min:
-                min = velocities[current_index]
-                index_min = current_index
             current_index += 1
 
         current_index = end_stop
         min = velocities[end_stop]
         index_min = end_stop
         while current_index >= beg_stop:
-            if velocities[current_index] - min > 0.01:
+            curr_vel = velocities[current_index]
+            if curr_vel < min:
+                min = curr_vel
+                index_min = current_index
+            if curr_vel - min > 0.001 or curr_vel < 0.08:
                 reduced_stops[i] = (reduced_stops[i][0], index_min)
                 break
-            if velocities[current_index] < min:
-                min = velocities[current_index]
-                index_min = current_index
             current_index -= 1
     return reduced_stops
 
@@ -82,14 +85,15 @@ def get_all_values_and_positions(time, vX, vY, x, y, stops):
         positions.append(direction_walk[i])
     return velocities, positions
 
-def add_vertical_line(fig, x, color='blue', width=5, showlegend=False, legend=""):    
+def add_vertical_line(fig, x, color='blue', width=5, showlegend=False, legend="", dash="dash"):
+    dash_style = dash if dash is not None else "solid"
     fig.add_shape(
         type="line",
         x0=x,
         x1=x,
         y0=-0.25,
         y1=2,
-        line=dict(color=color, width=width, dash="dash"),
+        line=dict(color=color, width=width, dash=dash_style),
         layer="below",
         showlegend=showlegend,
         name=legend
@@ -164,12 +168,22 @@ def get_middles(positions, stops):
     return middles
 
 
-def get_avg_speeds_around_positions(positions_index, x, meters_around=0.5):
+def get_avg_speeds_around_positions(positions_index, positions, v, meters_around=0.5):
     avg_speeds = []
-    FPS = 60
     for pos in positions_index:
-        start_index = max(0, pos - int(meters_around * FPS))
-        end_index = min(len(x), pos + int(meters_around * FPS))
-        avg_speed = statistics.mean(x[start_index:end_index])
+        mid_pos = positions[pos]
+        curr_forw_pos = mid_pos
+        forw_ind = pos
+        while abs(curr_forw_pos - mid_pos) < meters_around:
+            forw_ind += 1
+            curr_forw_pos = positions[forw_ind]
+       
+        curr_back_pos = mid_pos
+        back_ind = pos
+        while abs(curr_back_pos - mid_pos) < meters_around:
+            back_ind -= 1
+            curr_back_pos = positions[back_ind]
+    
+        avg_speed = statistics.mean(v[back_ind:forw_ind+1])
         avg_speeds.append(avg_speed)
     return avg_speeds
