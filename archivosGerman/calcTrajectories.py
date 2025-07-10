@@ -7,137 +7,12 @@ Created on Thu Nov 30 14:53:18 2023
 
 import numpy as np
 import glob
-from scipy.signal import savgol_filter
 
-def fft_filter(signal, fs, highcut):
-    """
-    signal: array 1D de la señal a filtrar
-    fs: frecuencia de muestreo
-    lowcut: frecuencia mínima del filtro
-    highcut: frecuencia máxima del filtro
-    """
-    fft_vals = np.fft.fft(signal)
-    freqs = np.fft.fftfreq(len(signal), 1/fs)
-    
-    # Crear un filtro pasabanda
-    band = (np.abs(freqs) > highcut)
-    filtered_fft = fft_vals.copy()
-    filtered_fft[band] = 0
-    
-    # Inversa FFT para obtener la señal filtrada
-    filtered_signal = np.fft.ifft(filtered_fft).real
-    
-    return filtered_signal
+from data_lib import divide_in_events, fft_filter, five_point_stencil, hampel_filter, moving_average_smoothing
 
-def hampel_filter(v, window_size=7, n_sigmas=3):
-    """
-    v: array 1D de velocidades (o posiciones)
-    window_size: longitud de la ventana (debe ser impar)
-    n_sigmas: número de desviaciones estándar para considerar outlier
-    """
-    L = len(v)
-    k = (window_size - 1) // 2
-    filtered = v.copy()
-    
-    for i in range(L):
-        # límites de ventana
-        lo = max(i - k, 0)
-        hi = min(i + k + 1, L)
-        window = v[lo:hi]
-        
-        med = np.median(window)
-        sigma = 1.4826 * np.median(np.abs(window - med))  # estimador robusto
-        if np.abs(v[i] - med) > n_sigmas * sigma:
-            filtered[i] = med  # reemplaza outlier por mediana local
-    return filtered
-
-def moving_average_smoothing(v, window_size=5):
-    """
-    v: array 1D de velocidades (o posiciones)
-    window_size: longitud de la ventana (debe ser impar)
-    """
-    if window_size % 2 == 0:
-        raise ValueError("window_size debe ser impar")
-    
-    half_window = window_size // 2
-    smoothed = np.zeros_like(v)
-    
-    for i in range(len(v)):
-        lo = max(i - half_window, 0)
-        hi = min(i + half_window + 1, len(v))
-        smoothed[i] = np.mean(v[lo:hi])
-    
-    return smoothed
-
-def finite_difference_left(x, y, dt):
-    """
-    Calcula las velocidades usando diferencia finita por izquierda
-    
-    x: array 1D de posiciones en el eje x
-    y: array 1D de posiciones en el eje y
-    dt: intervalo de tiempo entre mediciones
-    """
-    vx = np.zeros(len(x))
-    vy = np.zeros(len(y))
-    
-    for i in range(1, len(x)):
-        vx[i] = (x[i] - x[i-1]) / dt
-        vy[i] = (y[i] - y[i-1]) / dt
-    
-    # Manejo de los extremos
-    vx[0] = (x[1] - x[0]) / dt
-    vy[0] = (y[1] - y[0]) / dt
-    
-    return vx, vy
-
-def finite_difference_centered(x, y, dt):
-    """
-    Calcula las velocidades usando diferencia finita por izquierda
-    
-    x: array 1D de posiciones en el eje x
-    y: array 1D de posiciones en el eje y
-    dt: intervalo de tiempo entre mediciones
-    """
-    vx = np.zeros(len(x))
-    vy = np.zeros(len(y))
-    
-    for i in range(1, len(x)-1):
-        vx[i] = (x[i+1] - x[i-1]) / (2*dt)
-        vy[i] = (y[i+1] - y[i-1]) / (2*dt)
-    
-    # Manejo de los extremos
-    vx[0] = (x[1] - x[0]) / dt
-    vy[0] = (y[1] - y[0]) / dt
-    vx[-1] = (x[-1] - x[-2]) / dt
-    vy[-1] = (y[-1] - y[-2]) / dt
-    
-    return vx, vy
-
-
-def five_point_stencil(x,y,dt):
-    vx = np.zeros(len(x))
-    vy = np.zeros(len(y))
-    
-    for i in range(len(x)-4):
-        vx[i+2] = (x[i]/12-2/3*x[i+1]+2/3*x[i+3]-x[i+4]/12)/dt
-        vy[i+2] = (y[i]/12-2/3*y[i+1]+2/3*y[i+3]-y[i+4]/12)/dt
-        if vx[i+2] > 5:
-            print('vx',i+2,vx[i+2])
-            print(f'Values = {x[i]},{x[i+1]},{x[i+2]},{x[i+3]},{x[i+4]}')
-    
-    vx[0] = (x[1]-x[0])/dt
-    vy[0] = (y[1]-y[0])/dt
-    vx[1] = (x[2]-x[0])/dt/2
-    vy[1] = (y[2]-y[0])/dt/2
-    vx[-1] = (x[-1]-x[-2])/dt
-    vy[-1] = (y[-1]-y[-2])/dt
-    vx[-2] = (x[-1]-x[-3])/dt/2
-    vy[-2] = (y[-1]-y[-3])/dt/2
-
-    return vx,vy
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/fft0p5/'
+outputFolder = './archivosGerman/by_events/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -182,17 +57,23 @@ for i in range(len(inputFile)):
     Y_smooth = moving_average_smoothing(Y, window_size=5)
 
     # CALCULO LAS VELOCIDADES USANDO DIFERENCIAS FINITAS DE LAS POSICIONES EN DISTINTOS TIEMPOS
+    (events, all_events_indexes) = divide_in_events(X_smooth, Y_smooth)
+    for j, event in enumerate(events):
+        event_indexes = all_events_indexes[j]
+        
+        V = five_point_stencil(event,1/FPS)
+        t = np.arange(0,len(V))/FPS
 
-    VX,VY = five_point_stencil(X_smooth,Y_smooth,1/FPS)
-    t = np.arange(0,len(ped))/FPS
+        V_clean = hampel_filter(V, 19, 2)
+        #VX_clean = hampel_filter(VX, 19, 2)
+        #VY_clean = hampel_filter(VY, 19, 2)
+        
+        V_fft = fft_filter(V_clean, fs=FPS, highcut=0.5)
+        #vx_fft = fft_filter(VX_clean, fs=FPS, highcut=0.5)
+        #vy_fft = fft_filter(VY_clean, fs=FPS, highcut=0.5)
 
-    VX_clean = hampel_filter(VX, 19, 2)
-    VY_clean = hampel_filter(VY, 19, 2)
+        data = np.c_[t,X_smooth[event_indexes[0]:event_indexes[1]+1],Y_smooth[event_indexes[0]:event_indexes[1]+1],V_fft]   # Para evitar el smoothing cambiar esto a VX y VY
+        outFile = f'tXYV_ped{i+1:02d}_event{j+1:02d}.txt'
+
+        np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
     
-    vx_fft = fft_filter(VX_clean, fs=FPS, highcut=0.5)
-    vy_fft = fft_filter(VY_clean, fs=FPS, highcut=0.5)
-
-    data = np.c_[t,X,Y,vx_fft,vy_fft]   # Para evitar el smoothing cambiar esto a VX y VY
-    outFile = 'tXYvXvY' + str(i+1).zfill(2) + '.txt'
-    np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
-  

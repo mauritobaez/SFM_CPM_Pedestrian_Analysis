@@ -85,6 +85,33 @@ def get_all_values_and_positions(time, vX, vY, x, y, stops):
         positions.append(direction_walk[i])
     return velocities, positions
 
+# Esto te devuelve por evento desde el primer beginning del stop hasta el final del siguiente stop
+def get_all_events(time, vX, vY, stops):
+    stop_index = 0
+    events = []
+    current_event = []
+    next_event = []
+    direction_vel = vX
+    start_next = False
+    for i in range(len(time)):
+        if stop_index < len(stops)-1 and i > stops[stop_index+1][0]:
+            stop_index += 1
+            alt_dir = vY if stop_index == 2 or stop_index == 5 else vX
+            start_next = True
+            
+        if start_next and stops[stop_index][1] == i:
+            events.append(current_event)
+            current_event = next_event
+            direction_vel = alt_dir
+            next_event = []
+            start_next = False
+        
+        if start_next:
+            next_event.append(abs(alt_dir[i]))
+        current_event.append(abs(direction_vel[i]))
+        
+    return events
+
 def add_vertical_line(fig, x, color='blue', width=5, showlegend=False, legend="", dash="dash"):
     dash_style = dash if dash is not None else "solid"
     fig.add_shape(
