@@ -98,12 +98,12 @@ def get_all_events(time, vX, vY, stops):
             stop_index += 1
             alt_dir = vY if stop_index == 2 or stop_index == 5 else vX
             start_next = True
+            next_event = []
             
         if start_next and stops[stop_index][1] == i:
             events.append(current_event)
             current_event = next_event
             direction_vel = alt_dir
-            next_event = []
             start_next = False
         
         if start_next:
@@ -194,6 +194,30 @@ def get_middles(positions, stops):
     
     return middles
 
+def get_middle(positions, prev_end_stop):
+    curr_index = prev_end_stop
+    curr_meter = positions[prev_end_stop]
+    while curr_index < len(positions):
+        if 3.25 < abs(curr_meter - positions[curr_index]):
+            return curr_index - 1 if abs(abs(curr_meter - positions[curr_index - 1]) - 3.25) < abs(abs(curr_meter - positions[curr_index]) - 3.25) else curr_index
+        curr_index += 1
+    return None
+
+def get_next_local_minimum(v, start_index):
+    curr_index = start_index
+    while curr_index < len(v) - 1:
+        if v[curr_index] < v[curr_index + 1]:
+            return curr_index
+        curr_index += 1
+    return len(v) - 1
+
+def get_prev_local_minimum(v, start_index):
+    curr_index = start_index
+    while curr_index > 0:
+        if v[curr_index] < v[curr_index - 1]:
+            return curr_index
+        curr_index -= 1
+    return 0
 
 def get_avg_speeds_around_positions(positions_index, positions, v, meters_around=0.5):
     avg_speeds = []
