@@ -2,12 +2,12 @@
 import plotly.graph_objects as go
 import os
 
-FILES_TO_USE = [12]# [i for i in range(1, 15)]
+FILES_TO_USE = [2]# [i for i in range(1, 15)]
 
 folders = [
-    #"diferenciasFinitas",
+    #"para_presentacion/diferenciasFinitas",
     #"diferenciasFinitasSmoothAndFilter",
-    #"pedestrianTrajectoriesProcessed",
+    "para_presentacion/pedestrianTrajectoriesProcessed",
     #"pedestrianTrajectoriesProcessedSmoothAndFilter",
     #"stencilMovingAverage",
     #"stencilMovingAverageHampel",
@@ -15,22 +15,22 @@ folders = [
     #"newPedestriansMovAvg_5PS_Ham",
     #"fft1p5",
     #"fft1",
-    "fft0p5",
+    #"fft0p5",
 ]
 
 colors = [
     "red",
     #"blue",
-    #"green",
+    "green",
     #"orange",
     #"purple",
     #"green"
 ]
 
 names = [
-    #"finite difference",
+    #"finite differences",
     #"fd smooth and filter",
-    #"5 point stencil",
+    "Velocity in X axis",
     #"5pt Savitzky-Golay + Hampel",
     #"5pt moving average",
     #"5pt moving average + Hampel",
@@ -38,7 +38,7 @@ names = [
     #"Mov Avg + 5pt + Hampel",
     #"Mov Avg + 5pt + Hampel + FFT 1.5Hz",
     #"Mov Avg + 5pt + Hampel + FFT 1Hz",
-    "Mov Avg + 5pt + Hampel + FFT 0.5Hz",
+    #"Mov Avg + 5pt + Hampel + FFT 0.5Hz",
 ]
 
 figures = {}
@@ -73,7 +73,8 @@ for index, folder_name in enumerate(folders):
         if key not in figures:
             figures[key] = go.Figure()   
         fig = figures[key]
-        fig.add_trace(go.Scatter(x=time, y=velocities, mode='lines', name=names[index], line=dict(color=colors[index]), opacity=1 if index == 0 else 0.8))
+        fig.add_trace(go.Scatter(x=time, y=vX, mode='lines', name=names[index], line=dict(color=colors[index]), opacity=1 if index == 0 else 0.8))
+        fig.add_trace(go.Scatter(x=time, y=vY, mode='lines', name="Velocity in Y axis", line=dict(color="blue"), opacity=1 if index == 0 else 0.8))
         
         
 for key in keys:
@@ -82,12 +83,18 @@ for key in keys:
     fig.update_xaxes(showgrid=False, dtick=5) 
     fig.update_yaxes(showgrid=False)
     fig.update_layout(
-        title=f"Speed vs Time for {key}",
+        title={
+            'text': f"Speed vs Time for {key}",
+            'font': dict(size=28)
+        },
         xaxis_title="Time (s)",
         yaxis_title="Speed (m/s)",
         template="plotly_white",
         showlegend=True,
-    )
+        font=dict(size=20),
+        xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
+        yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
+        )
 
     fig.show()
     #name = "multiple_fft_comparison"

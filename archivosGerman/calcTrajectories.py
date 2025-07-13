@@ -8,11 +8,11 @@ Created on Thu Nov 30 14:53:18 2023
 import numpy as np
 import glob
 
-from data_lib import divide_in_events, fft_filter, five_point_stencil, hampel_filter, moving_average_smoothing
+from data_lib import append_zeros_at_position, divide_in_events, fft_filter, five_point_stencil, hampel_filter, moving_average_smoothing
 
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/by_events/'
+outputFolder = './archivosGerman/no_fft_with_30_zero/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -57,23 +57,81 @@ for i in range(len(inputFile)):
     Y_smooth = moving_average_smoothing(Y, window_size=5)
 
     # CALCULO LAS VELOCIDADES USANDO DIFERENCIAS FINITAS DE LAS POSICIONES EN DISTINTOS TIEMPOS
-    (events, all_events_indexes) = divide_in_events(X_smooth, Y_smooth)
-    for j, event in enumerate(events):
-        event_indexes = all_events_indexes[j]
+    #(events, all_events_indexes) = divide_in_events(X_smooth, Y_smooth)
+    #for j, event in enumerate(events):
+    #    event_indexes = all_events_indexes[j]
         
-        V = five_point_stencil(event,1/FPS)
-        t = np.arange(0,len(V))/FPS
-
-        V_clean = hampel_filter(V, 19, 2)
-        #VX_clean = hampel_filter(VX, 19, 2)
-        #VY_clean = hampel_filter(VY, 19, 2)
-        
-        V_fft = fft_filter(V_clean, fs=FPS, highcut=0.5)
-        #vx_fft = fft_filter(VX_clean, fs=FPS, highcut=0.5)
-        #vy_fft = fft_filter(VY_clean, fs=FPS, highcut=0.5)
-
-        data = np.c_[t,X_smooth[event_indexes[0]:event_indexes[1]+1],Y_smooth[event_indexes[0]:event_indexes[1]+1],V_fft]   # Para evitar el smoothing cambiar esto a VX y VY
-        outFile = f'tXYV_ped{i+1:02d}_event{j+1:02d}.txt'
-
-        np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
+    VX = five_point_stencil(X_smooth, 1/FPS)
+    VY = five_point_stencil(Y_smooth, 1/FPS)
     
+
+    #V_clean = hampel_filter(V, 19, 2)
+    VX_clean = hampel_filter(VX, 19, 2)
+    VY_clean = hampel_filter(VY, 19, 2)
+    
+    if i+1 == 1:
+        VX_clean = append_zeros_at_position(VX_clean, 30, len(VX_clean) -1)
+        VY_clean = append_zeros_at_position(VY_clean, 30, len(VY_clean) -1)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, len(X_smooth) -1)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, len(Y_smooth) -1)
+    elif i+1 == 2:
+        VX_clean = append_zeros_at_position(VX_clean, 30, 2675)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 2675)
+        VX_clean = append_zeros_at_position(VX_clean, 30, 3044)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 3044)
+        VX_clean = append_zeros_at_position(VX_clean, 30, 3433)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 3433)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, 2675)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 2675)
+        X_smooth = append_zeros_at_position(X_smooth, 30, 3044)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 3044)
+        X_smooth = append_zeros_at_position(X_smooth, 30, 3433)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 3433)
+    elif i+1 == 3:
+        VX_clean = append_zeros_at_position(VX_clean, 30, len(VX_clean) -1)
+        VY_clean = append_zeros_at_position(VY_clean, 30, len(VY_clean) -1)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, len(X_smooth) -1)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, len(Y_smooth) -1)
+    elif i+1 == 6:
+        VX_clean = append_zeros_at_position(VX_clean, 30, 465)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 465)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, 465)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 465)
+    elif i+1 == 7:
+        VX_clean = append_zeros_at_position(VX_clean, 30, 2468)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 2468)
+        VX_clean = append_zeros_at_position(VX_clean, 30, 3239)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 3239)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, 2468)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 2468)
+        X_smooth = append_zeros_at_position(X_smooth, 30, 3239)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 3239)
+    elif i+1 == 10:
+        VX_clean = append_zeros_at_position(VX_clean, 30, 1354)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 1354)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, 1354)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 1354)
+    elif i+1 == 13:
+        VX_clean = append_zeros_at_position(VX_clean, 30, 1603)
+        VY_clean = append_zeros_at_position(VY_clean, 30, 1603)
+        
+        X_smooth = append_zeros_at_position(X_smooth, 30, 1603)
+        Y_smooth = append_zeros_at_position(Y_smooth, 30, 1603)
+        
+    t = np.arange(0,len(VX_clean))/FPS
+    
+    #V_fft = fft_filter(V_clean, fs=FPS, highcut=0.5)
+    vx_fft = fft_filter(VX_clean, fs=FPS, highcut=0.5)
+    vy_fft = fft_filter(VY_clean, fs=FPS, highcut=0.5)
+    
+    data = np.c_[t,X_smooth, Y_smooth, VX_clean, VY_clean]
+    outFile = f'tXYvXvY{i+1:02d}.txt'
+    np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
+    
+

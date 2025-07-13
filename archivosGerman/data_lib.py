@@ -150,3 +150,12 @@ def divide_in_events(x, y):
         event_indexes.append((initial_index, end_of_event_index))
     return complete_events, event_indexes
 
+
+def append_zeros_at_position(array, n, position):
+    """
+    Append n zeros at the specified position in the array.
+    """
+    if position < 0 or position > len(array):
+        raise ValueError("Position out of bounds")
+    
+    return np.insert(array, position, [0]*n)
