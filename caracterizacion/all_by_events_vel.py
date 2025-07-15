@@ -4,11 +4,12 @@ from lib import add_vertical_line, get_all_events, get_all_values, get_all_value
 from regression import double_linear_regression
 import os
 
-FILES_TO_USE = [2,6,7,10,13]  # Use all files from 01 to 14
-folder_names = ['fft0p5']#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
+folder_names = ['fft_with_30_zero', 'no_fft_with_30_zero'] #['NewPedestriansMovAvg_5PS_Ham']#  # Change this to the folder you want to use
 
 keys= []
 figures = {}
+shifts = {}  # Dictionary to store shifts for each key
 for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
@@ -44,19 +45,26 @@ for key in keys:
                 figures[f'{key}_{i+1:02}'] = go.Figure()
             fig = figures[f'{key}_{i+1:02}']
             
-            end_prev_stop = get_prev_local_minimum(event, stops[i][1] - stops[i][0])
-            beg_next_stop = get_next_local_minimum(event, stops[i+1][0] - stops[i][0])
             
+            if folder_name == 'fft_with_30_zero':
+                end_prev_stop = get_prev_local_minimum(event, stops[i][1] - stops[i][0])
+                beg_next_stop = get_next_local_minimum(event, stops[i+1][0] - stops[i][0])
                 
-            shift = time[end_prev_stop]
+                shift = time[end_prev_stop]
+                shifts[f'{key}_{i+1:02}'] = shift
+            else:
+                shift = shifts[f'{key}_{i+1:02}']
+                
             shifted_time = [t - shift for t in time]
-            fig.add_trace(go.Scatter(x=shifted_time, y=event, mode='markers', marker=dict(color='red' if folder_name == 'fft_with_30_zeros' else 'blue', size=4), opacity=0.8, showlegend=False))
-            if folder_name == 'fft_with_30_zeros':
+            
+            if folder_name == 'fft_with_30_zero':
                 middle = get_middle(y if i == 2 or i == 5 else x, stops[i][0] + end_prev_stop)
                 if middle is not None:
                     add_vertical_line(fig, time[middle] - time[stops[i][0] + end_prev_stop], color='blue', width=2, showlegend=True, legend="Middle", dash="dash")
                     
                 add_vertical_line(fig, time[beg_next_stop] - time[end_prev_stop], color='orange', width=2, showlegend=True, legend="Start of Stop", dash="solid")
+            
+            fig.add_trace(go.Scatter(x=shifted_time, y=event, mode='markers', marker=dict(color='red' if folder_name == 'fft_with_30_zero' else 'blue', size=4), opacity=0.8, showlegend=False))
         
 
 
@@ -83,7 +91,7 @@ for key in keys:
         )
         
         #fig.show()
-        name = "by_events_both"
+        name = "by_events_both_fix"
         if not os.path.exists(f"./{name}"):
            os.makedirs(f"./{name}")
         fig.write_image(
