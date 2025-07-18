@@ -12,7 +12,7 @@ from data_lib import append_values_at_position, divide_in_events, fft_filter, fi
 
 
 inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/with_sqrt/'
+outputFolder = './archivosGerman/only_5ps/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -61,13 +61,14 @@ for i in range(len(inputFile)):
     #for j, event in enumerate(events):
     #    event_indexes = all_events_indexes[j]
         
-    VX = five_point_stencil(X_smooth, 1/FPS)
-    VY = five_point_stencil(Y_smooth, 1/FPS)
-    
+    #VX = five_point_stencil(X_smooth, 1/FPS)
+    #VY = five_point_stencil(Y_smooth, 1/FPS)
+    VX = five_point_stencil(X, 1/FPS)
+    VY = five_point_stencil(Y, 1/FPS)
 
     #V_clean = hampel_filter(V, 19, 2)
-    #VX_clean = hampel_filter(VX, 19, 2)
-    #VY_clean = hampel_filter(VY, 19, 2)
+    VX_clean = hampel_filter(VX, 19, 2)
+    VY_clean = hampel_filter(VY, 19, 2)
     
     #if i+1 == 1:
     #    VX_clean = append_values_at_position(VX_clean, 30, len(VX_clean) -1)
@@ -131,8 +132,8 @@ for i in range(len(inputFile)):
     #vx_fft = fft_filter(VX_clean, fs=FPS, highcut=0.5)
     #vy_fft = fft_filter(VY_clean, fs=FPS, highcut=0.5)
     
-    #data = np.c_[t,X_smooth, Y_smooth, VX_clean, VY_clean]
-    data = np.c_[t, X_smooth, Y_smooth, VX, VY, np.sqrt(VX**2 + VY**2)]
+    data = np.c_[t,X_smooth, Y_smooth, VX, VY]
+    #data = np.c_[t, X_smooth, Y_smooth, VX, VY, np.sqrt(VX**2 + VY**2)]
     outFile = f'tXYvXvY{i+1:02d}.txt'
     np.savetxt(outputFolder+outFile, data, delimiter='\t',fmt='%.8e')
     

@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 import os
 
-FILES_TO_USE = [4]# [i for i in range(1, 15)]
+FILES_TO_USE = [3]# [i for i in range(1, 15)]
 
 folders = [
     #"para_presentacion/diferenciasFinitas",
@@ -13,16 +13,18 @@ folders = [
     #"para_presentacion/stencilMovingAverageHampel",
     #"MovingAverageStencilHampel",
     #"newPedestriansMovAvg_5PS_Ham",
-    #"fft1p5",
-    #"fft1",
-    #"fft0p5",
-    "with_sqrt"  # This is the folder with the sqrt values
+    "fft1p5",
+    "fft1",
+    "fft0p5",
+    #"with_sqrt",
+    #"only_5ps",
+    #"only_hampel",
 ]
 
 colors = [
     "red",
-    #"blue",
-    #"green",
+    "blue",
+    "green",
     #"orange",
     #"purple",
     #"green"
@@ -37,10 +39,11 @@ names = [
     #"5pt moving average + Hampel",
     #"Moving Average over x and y + Hampel",
     #"Mov Avg + 5pt + Hampel",
-    #"Mov Avg + 5pt + Hampel + FFT 1.5Hz",
-    #"Mov Avg + 5pt + Hampel + FFT 1Hz",
-    #"Mov Avg + 5pt + Hampel + FFT 0.5Hz",
-    "Max of Vx Vy"
+    "Mov Avg + 5pt + Hampel + FFT 1.5Hz",
+    "Mov Avg + 5pt + Hampel + FFT 1Hz",
+    "Mov Avg + 5pt + Hampel + FFT 0.5Hz",
+    #"5PS",
+    #"5PS + Hampel",
 ]
 
 figures = {}
@@ -67,7 +70,7 @@ for index, folder_name in enumerate(folders):
             time.append(float(line_values[0]))
             vX.append(abs(float(line_values[3])))
             vY.append(abs(float(line_values[4])))
-            vSqrt.append(float(line_values[5]))
+            #vSqrt.append(float(line_values[5]))
             
 
         velocities = []
@@ -78,13 +81,13 @@ for index, folder_name in enumerate(folders):
         if key not in figures:
             figures[key] = go.Figure()   
         fig = figures[key]
-        #fig.add_trace(go.Scatter(x=time, y=velocities, mode='lines', name=names[index], line=dict(color=colors[index]), opacity=0.5 if index == 0 else 0.8))
+        fig.add_trace(go.Scatter(x=time, y=velocities, mode='lines', name=names[index], line=dict(color=colors[index]), opacity=0.5 if index == 0 else 0.8))
         #fig.add_trace(go.Scatter(x=time, y=vSqrt, mode='lines', name="Rapidez", line=dict(color="blue"), opacity=0.5))
         #fig.add_trace(go.Scatter(x=time, y=vY, mode='lines', name="Velocity in Y axis", line=dict(color="blue"), opacity=1 if index == 0 else 0.8))
         
-        fig.add_trace(go.Scatter(x=time, y=vSqrt, mode='lines', name="Rapidez", line=dict(color="red", width=4), opacity=1))
-        fig.add_trace(go.Scatter(x=time, y=vX, mode='lines', name="Velocity in X axis", line=dict(color='green'), opacity=0.6))
-        fig.add_trace(go.Scatter(x=time, y=vY, mode='lines', name="Velocity in Y axis", line=dict(color="blue"), opacity=0.6))
+        #fig.add_trace(go.Scatter(x=time, y=vSqrt, mode='lines', name="Rapidez", line=dict(color="red", width=4), opacity=1))
+        #fig.add_trace(go.Scatter(x=time, y=vX, mode='lines', name="Velocity in X axis", line=dict(color='green'), opacity=0.6))
+        #fig.add_trace(go.Scatter(x=time, y=vY, mode='lines', name="Velocity in Y axis", line=dict(color="blue"), opacity=0.6))
         
         
         
