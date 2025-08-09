@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import mplcursors
 
-FILES_TO_USE = [14]# [i for i in range(1, 15)]
+FILES_TO_USE = [12]# [i for i in range(1, 15)]
 keys= []
 for i in FILES_TO_USE:
     key = f"{i:02}"
