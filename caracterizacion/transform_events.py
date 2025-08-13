@@ -101,7 +101,7 @@ for key in keys:
 
         #fig.show()
         
-        name = "indep_events"
+        name = "indep_events_2"
         if not os.path.exists(f"./{name}"):
            os.makedirs(f"./{name}")
         fig.write_image(
