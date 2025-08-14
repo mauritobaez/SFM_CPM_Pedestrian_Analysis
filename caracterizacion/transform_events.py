@@ -4,11 +4,10 @@ import os
 import numpy as np
 import plotly.graph_objects as go
 
-from archivosGerman.data_lib import fft_filter, hampel_filter
-from caracterizacion.lib import add_vertical_line, get_middle
+from lib import add_vertical_line, get_middle
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
-folder_name = 'events_by_ped'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+folder_name = 'trans_events_by_ped'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 FPS = 60
 keys= []
 
@@ -38,18 +37,18 @@ for key in keys:
         t = []
         x = []
         y = []
-        vX = []
-        vY = []
-        with open(f"events_by_ped/ped_{key}_event_{event_number}.txt", "r") as values:
+        v = []
+        
+        with open(f"archivosGerman/{folder_name}/ped_{key}_event_{event_number}.txt", "r") as values:
             lines = values.readlines()
         for line in lines:
             line_values = line.split(sep='\t')
             t.append(float(line_values[0]))
             x.append(float(line_values[1]))
             y.append(float(line_values[2]))
-            vX.append(abs(float(line_values[3])))
-            vY.append(abs(float(line_values[4])))
-        events.append({'t': t, 'x': x, 'y': y, 'vX': vX, 'vY': vY})
+            v.append(abs(float(line_values[3])))
+            
+        events.append({'t': t, 'x': x, 'y': y, 'v': v})
 
     curr_pasto = pastos[key]
     prev_end_stop = 0
@@ -58,20 +57,12 @@ for key in keys:
         fig = go.Figure()
         x = event['x']
         y = event['y']
-        v = event['vY'] if i == 2 or i == 5 else event['vX']
+        v = event['v']
         #t = event['t']
         t = np.arange(len(v)) / FPS
         
-        v_filtered = hampel_filter(v, 19, 2)
         
-        #v_fft = fft_filter(v, fs=FPS, highcut=0.5)
-        v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)
-        #v_mov_avg = moving_average_smoothing(v_filtered, window_size=5)
-        
-        fig.add_trace(go.Scatter(x=t, y=v_filtered, mode='markers', name='Velocity', marker=dict(color='red'), opacity=1))
-        #fig.add_trace(go.Scatter(x=t, y=v_fft, mode='lines', name='FFT Filtered Velocity 0.5', line=dict(color='blue'), opacity=0.7))
-        #fig.add_trace(go.Scatter(x=t, y=v_mov_avg, mode='lines', name='Moving Average Smoothed Velocity', line=dict(color='green'), opacity=0.7))
-        fig.add_trace(go.Scatter(x=t, y=v_fft1, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
+        fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
         middle = get_middle(y if i == 2 or i == 5 else x, prev_end_stop)
         add_vertical_line(fig, t[middle], color='blue', width=2, showlegend=False)
@@ -100,8 +91,8 @@ for key in keys:
         )
 
         #fig.show()
-        
-        name = "indep_events_2"
+
+        name = "indep_events_3"
         if not os.path.exists(f"./{name}"):
            os.makedirs(f"./{name}")
         fig.write_image(
