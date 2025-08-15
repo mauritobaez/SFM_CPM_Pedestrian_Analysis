@@ -176,5 +176,6 @@ cython_debug/
 datosCorregidos
 
 **/*.png
+**/*.json
 
 *.txt
