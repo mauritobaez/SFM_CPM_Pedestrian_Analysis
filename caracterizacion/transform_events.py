@@ -51,8 +51,9 @@ for key in keys:
         events.append({'t': t, 'x': x, 'y': y, 'v': v})
 
     curr_pasto = pastos[key][1]
-    prev_end_stop = pastos[key][0]
-
+    prev_end_stop = 0   # No hace falta que sea el start porque ya viene cortado el evento por el divide_in_events.py
+    initial_offset = pastos[key][0]
+    middles = []
     for i, event in enumerate(events):
         fig = go.Figure()
         x = event['x']
@@ -67,11 +68,11 @@ for key in keys:
         middle = get_middle(y if i == 2 or i == 5 else x, prev_end_stop)
         add_vertical_line(fig, t[middle], color='blue', width=2, showlegend=False)
         
-        add_vertical_line(fig, prev_end_stop/60, color='black', width=2, showlegend=False)
         if i != 0:
-            add_vertical_line(fig, (curr_pasto[2*i] - curr_pasto[2*i - 2])/60, color='black', width=2, showlegend=False)
+            add_vertical_line(fig, prev_end_stop/60, color='black', width=2, showlegend=False)  # Start acceleration
+            add_vertical_line(fig, (curr_pasto[2*i] - curr_pasto[2*i - 2])/60, color='black', width=2, showlegend=False) # End deceleration
         else:
-            add_vertical_line(fig, curr_pasto[0]/60, color='black', width=2, showlegend=False)
+            add_vertical_line(fig, (curr_pasto[0] - initial_offset)/60, color='black', width=2, showlegend=False)    # End deceleration
         
         if i != len(events) - 1:
             prev_end_stop = curr_pasto[2*i + 1] - curr_pasto[2*i]
@@ -90,15 +91,17 @@ for key in keys:
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
         )
 
+        middles.append(middle)
         #fig.show()
 
-        name = "indep_events_3"
-        if not os.path.exists(f"./{name}"):
-           os.makedirs(f"./{name}")
-        fig.write_image(
-           f"./{name}/speeds_{key}_{(i+1):02}.png",
-           width=1920,
-           height=1080,
-           scale=2  # Higher scale for better resolution
-        )
+        #name = "indep_events_3"
+        #if not os.path.exists(f"./{name}"):
+        #   os.makedirs(f"./{name}")
+        #fig.write_image(
+        #   f"./{name}/speeds_{key}_{(i+1):02}.png",
+        #   width=1920,
+        #   height=1080,
+        #   scale=2  # Higher scale for better resolution
+        #)
+    print(f"Processed pedestrian {key} with {len(events)} events. Middle indices: {middles}")
         
