@@ -3,6 +3,8 @@ import numpy as np
 from scipy.optimize import curve_fit
 import plotly.graph_objects as go
 
+from lib_analisis import acceleration
+
 
 FILES_TO_USE = [1]  # Use all files from 01 to 14
 folder_name = 'trans_events_by_ped'
@@ -44,26 +46,19 @@ for key in keys:
     for i, event in enumerate(events):
         fig = go.Figure()
         v = event['v']
-        t = np.arange(len(v)) / FPS
         
         if i != 0:
             curr_end = curr_pastos[2*i] - curr_pastos[2*i - 2]
         
         v = v[start:curr_end+1]
-        t = t[start:curr_end+1]
+        t = np.arange(len(v)) / FPS
         
-        # Define the exponential function: a * exp(b * t) + c
-        # Quizás agregar la C, pero creo que debería siempre ser 0
-        def exp_func(t, a, b):
-            return a * np.exp(b * t)
-
         # Fit the exponential function to the velocity data
-        popt, pcov = curve_fit(exp_func, t, v, maxfev=10000)
+        popt, pcov = curve_fit(acceleration, t, v, maxfev=10000)
 
-        # popt contains the optimal values for a, b, c
-        a_fit, b_fit = popt
+        tau_fit = popt
 
-        print(f"Best fit parameters for event {i+1} of ped {key}: a={a_fit}, b={b_fit}")
+        print(f"Best fit parameters for event {i+1} of ped {key}: tau = {tau_fit:.4f}")
         
         if i != len(events) - 1:
             start = curr_pastos[2*i + 1] - curr_pastos[2*i]
