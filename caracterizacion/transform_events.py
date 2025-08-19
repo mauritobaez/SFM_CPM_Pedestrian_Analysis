@@ -6,7 +6,8 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
+FILES_TO_USE = [1]  # Use all files from 01 to 14
+EVENTS = [2]  # Events to process
 folder_name = 'trans_events_by_ped'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 FPS = 60
 keys= []
@@ -55,6 +56,7 @@ for key in keys:
     initial_offset = pastos[key][0]
     middles = []
     for i, event in enumerate(events):
+        
         fig = go.Figure()
         x = event['x']
         y = event['y']
@@ -62,7 +64,9 @@ for key in keys:
         #t = event['t']
         t = np.arange(len(v)) / FPS
         
-        
+        tau = 0.9665
+        theoretical_v = 1.3 * (1 - np.exp(-(t - prev_end_stop/60) / tau))
+        fig.add_trace(go.Scatter(x=t, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
         fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
         middle = get_middle(y if i == 2 or i == 5 else x, prev_end_stop)
@@ -77,6 +81,9 @@ for key in keys:
         if i != len(events) - 1:
             prev_end_stop = curr_pasto[2*i + 1] - curr_pasto[2*i]
     
+        if i+1 not in EVENTS:
+            continue
+    
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
         fig.update_layout(
@@ -88,11 +95,11 @@ for key in keys:
             showlegend=True,
             font=dict(size=20),
             xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
-            yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
+            yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 
-        middles.append(middle)
-        #fig.show()
+        #middles.append(middle)
+        fig.show()
 
         #name = "indep_events_3"
         #if not os.path.exists(f"./{name}"):
@@ -103,5 +110,5 @@ for key in keys:
         #   height=1080,
         #   scale=2  # Higher scale for better resolution
         #)
-    print(f"Processed pedestrian {key} with {len(events)} events. Middle indices: {middles}")
+    #print(f"Processed pedestrian {key} with {len(events)} events. Middle indices: {middles}")
         

@@ -58,7 +58,7 @@ for key in keys:
 
         tau_fit = popt
 
-        print(f"Best fit parameters for event {i+1} of ped {key}: tau = {tau_fit:.4f}")
+        print(f"Best fit parameters for event {i+1} of ped {key}: tau = {tau_fit}")
         
         if i != len(events) - 1:
             start = curr_pastos[2*i + 1] - curr_pastos[2*i]
