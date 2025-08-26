@@ -12,7 +12,7 @@ output_file_with_no_values = 'taus'
 FPS = 60
 
 def parameters_for_decceleration(i, v, curr_pastos):
-    
+    # Hacer lo de tau segundos
     if i != 0:
         curr_end = curr_pastos[2*i] - curr_pastos[2*i - 2]
     v = v[curr_mid: curr_end+1]
