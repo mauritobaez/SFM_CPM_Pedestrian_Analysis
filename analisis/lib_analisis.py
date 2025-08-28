@@ -11,9 +11,10 @@ def acceleration(parameter):
         return parameter * (1 - np.exp(-t / tau))
     return acc
 
-def deceleration(parameter, t, tau):
-    return parameter * np.exp(-t / tau)
-    
+def decelar(parameter, tau):
+    def decel(t):
+        return parameter * np.exp(-t / tau)
+    return decel
 
 def get_pastos():
     with open(f"analisis/pastos.json", "r") as f:
