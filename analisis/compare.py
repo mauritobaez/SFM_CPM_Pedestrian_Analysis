@@ -6,20 +6,22 @@ from lib_analisis import acceleration, best_fit, decelar, get_events, get_pastos
 
 
 FILES_TO_USE = [1]  # Use all files from 01 to 14
+EVENTS = [2]
 folder_name = 'trans_events_by_ped'
 output_file = 'events_dec_info'  # 'pastos_with_taus'
 output_file_with_no_values = 'taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 FPS = 60
 
+# En lugar de esto, agarrar los distintos V, y calcular el mejor tau
 def deceleration(v, curr_end):
     best_ecm = float('inf')
     best_tau = None
     best_v_d = None
     info = {}
-    for tau in np.arange(0.1, 2, 0.1):
+    for tau in np.arange(0.4, 1.1, 0.05):
         curr_info = {}
-        for v_d in np.arange(0.3, 2, 0.1):
+        for v_d in np.arange(0.1, 2.1, 0.1):
             comparison = []
             curr_velocities = v[curr_end-int(tau*v_d*60): curr_end+1]
             t = np.arange(len(curr_velocities)) / FPS
@@ -37,6 +39,38 @@ def deceleration(v, curr_end):
         info[f'{tau:.2f}'] = curr_info
     info['best'] = {'ecm': best_ecm, 'tau': best_tau, 'v_d': best_v_d}
     return info
+
+def decelerationv2(v, curr_end):
+    best_ecm = float('inf')
+    best_tau = None
+    best_v_d = None
+    info = {}
+    MIN_TIME = 3
+    for i in range(0, MIN_TIME*60):
+        curr_velocities = v[curr_end - MIN_TIME*60 + i: curr_end+1]
+        v_d = curr_velocities[0]
+        t = np.arange(MIN_TIME*60 - i) / FPS
+        
+        comparison = []
+        curr_info = {}
+        time_to_zero = MIN_TIME - i/FPS
+        tau = time_to_zero / v_d
+        dec_func = decelar(v_d, tau)
+        
+        for j, curr_t in enumerate(t):
+            v_fit = dec_func(curr_t)
+            comparison.append((curr_velocities[j]-v_fit)**2)
+            ecm = np.mean(comparison)
+            if ecm < best_ecm:
+                best_ecm = ecm
+                best_tau = tau
+                best_v_d = v_d
+            curr_info[f'{v_d:.2f}'] = {'ecm': ecm, 'tau': tau, 'v_d': v_d}
+        info[f'{tau:.2f}'] = curr_info
+    info['best'] = {'ecm': best_ecm, 'tau': best_tau, 'v_d': best_v_d}
+    
+    return info
+            
 
 def parameters_for_accleration(i, v, middles):
     curr_mid = middles[i]
@@ -70,8 +104,9 @@ for key in keys:
         v = event['v']
         
         if idea == 'deceleration':
-            curr_deceleration_info[f'event_{i}'] = deceleration(v, curr_end)
-            curr_end = curr_pastos[2*i] - curr_pastos[2*i - 2]
+            if i+1 in EVENTS:
+                curr_deceleration_info[f'event_{i}'] = deceleration(v, curr_end)
+            curr_end = curr_pastos[2*(i+1)] - curr_pastos[2*i + 1] if i != len(events) - 1 else 0   # If last event, no need to set curr_end
         elif idea == 'acceleration':
             t, v, func, func_args = parameters_for_accleration(i, v, middles)
             tau_fit, ecm = best_fit(t, v, model=func, model_args=func_args)
