@@ -44,11 +44,18 @@ def decelerationv2(v, curr_end):
     best_ecm = float('inf')
     best_tau = None
     best_v_d = None
+    best_time_to_zero = None
     info = {}
-    MIN_TIME = 3
-    for i in range(0, MIN_TIME*60):
+    MIN_TIME = 3 # segundos antes de llegar al final
+    MAX_TIME = 1
+    for i in range(0, int(MIN_TIME*60 - 60*MAX_TIME)):
         curr_velocities = v[curr_end - MIN_TIME*60 + i: curr_end+1]
         v_d = curr_velocities[0]
+        if i == 0:
+            print(curr_end)
+            print(len(curr_velocities))
+            print(len(v))
+            print(v_d)
         t = np.arange(MIN_TIME*60 - i) / FPS
         
         comparison = []
@@ -60,14 +67,16 @@ def decelerationv2(v, curr_end):
         for j, curr_t in enumerate(t):
             v_fit = dec_func(curr_t)
             comparison.append((curr_velocities[j]-v_fit)**2)
-            ecm = np.mean(comparison)
-            if ecm < best_ecm:
-                best_ecm = ecm
-                best_tau = tau
-                best_v_d = v_d
-            curr_info[f'{v_d:.2f}'] = {'ecm': ecm, 'tau': tau, 'v_d': v_d}
-        info[f'{tau:.2f}'] = curr_info
-    info['best'] = {'ecm': best_ecm, 'tau': best_tau, 'v_d': best_v_d}
+        
+        ecm = np.mean(comparison)
+        if ecm < best_ecm:
+            best_ecm = ecm
+            best_tau = tau
+            best_v_d = v_d
+            best_time_to_zero = time_to_zero
+        curr_info[f'v_d={v_d:.2f}'] = {'ecm': ecm, 'tau': tau, 'v_d': v_d, 'time_to_zero': time_to_zero}
+        info[f'tau={tau:.2f}'] = curr_info
+    info['best'] = {'ecm': best_ecm, 'tau_dec': best_tau, 'v_d': best_v_d, 'time_to_zero': best_time_to_zero}
     
     return info
             
@@ -105,8 +114,8 @@ for key in keys:
         
         if idea == 'deceleration':
             if i+1 in EVENTS:
-                curr_deceleration_info[f'event_{i}'] = deceleration(v, curr_end)
-            curr_end = curr_pastos[2*(i+1)] - curr_pastos[2*i + 1] if i != len(events) - 1 else 0   # If last event, no need to set curr_end
+                curr_deceleration_info[f'event_{i}'] = decelerationv2(v, curr_end)
+            curr_end = curr_pastos[2*(i+1)] - curr_pastos[2*i] if i != len(events) - 1 else 0   # If last event, no need to set curr_end
         elif idea == 'acceleration':
             t, v, func, func_args = parameters_for_accleration(i, v, middles)
             tau_fit, ecm = best_fit(t, v, model=func, model_args=func_args)
@@ -133,6 +142,6 @@ for key in keys:
 #with open(f"analisis/{output_file}.json", "w") as f_out:
 #    json.dump({'pastos': pastos}, f_out, indent=4)
 
-with open(f"analisis/{output_file}_dec.json", "w") as f_out:
+with open(f"analisis/{output_file}.json", "w") as f_out:
     json.dump({'deceleration_info': deceleration_info}, f_out, indent=4)   
  

@@ -65,16 +65,22 @@ for key in keys:
         
         tau = taus[i]
         mid_vel = v[middle]
-        theoretical_v = mid_vel * (1 - np.exp(-(t - prev_end_stop/60 + shift) / tau))
+        theoretical_v = mid_vel * (1 - np.exp(-t / tau))
         
         fig.add_trace(go.Scatter(x=t, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
         
-        #dec_tau = dec_taus[i]
-        #theoretical_v_dec = mid_vel * np.exp(-(t - middle/60) / dec_tau)
-        #fig.add_trace(go.Scatter(x=t, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='red', dash='dash')))
+        end_dec = (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 if i != 0 else (curr_pasto[0])/60
+        dec_tau = 1.4894
+        dec_start_vel = 0.9847
+        dec_start_time = end_dec - 1.466666
+        theoretical_v_dec = dec_start_vel * np.exp(-(t - dec_start_time + shift) / dec_tau)
+        fig.add_trace(go.Scatter(x=t, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='red', dash='dash')))
         
         if i != 0:
             add_vertical_line(fig, prev_end_stop/60 - shift, color='black', width=2, showlegend=False)  # Start acceleration
+            if i == 1:
+                print((curr_pasto[2*i] - curr_pasto[2*i - 2]))
+                print((curr_pasto[2*i] - curr_pasto[2*i - 2])/60 - shift)
             add_vertical_line(fig, (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 - shift, color='black', width=2, showlegend=False) # End deceleration
         else:
             add_vertical_line(fig, (curr_pasto[0])/60 - shift, color='black', width=2, showlegend=False)    # End deceleration
