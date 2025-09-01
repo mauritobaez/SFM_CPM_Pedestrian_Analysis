@@ -5,8 +5,8 @@ import plotly.graph_objects as go
 from lib_analisis import acceleration, best_fit, decelar, get_events, get_pastos
 
 
-FILES_TO_USE = [1]  # Use all files from 01 to 14
-EVENTS = [2]
+FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
+EVENTS = [1, 2, 3, 4, 5, 6, 7, 8]
 folder_name = 'trans_events_by_ped'
 output_file = 'events_dec_info'  # 'pastos_with_taus'
 output_file_with_no_values = 'taus'
@@ -40,27 +40,22 @@ def deceleration(v, curr_end):
     info['best'] = {'ecm': best_ecm, 'tau': best_tau, 'v_d': best_v_d}
     return info
 
-def decelerationv2(v, curr_end):
+def decelerationv2(v, curr_end, min_index, middle):
     best_ecm = float('inf')
     best_tau = None
     best_v_d = None
     best_time_to_zero = None
-    info = {}
+    #info = {}
     MIN_TIME = 3 # segundos antes de llegar al final
     MAX_TIME = 1
-    for i in range(0, int(MIN_TIME*60 - 60*MAX_TIME)):
-        curr_velocities = v[curr_end - MIN_TIME*60 + i: curr_end+1]
+    for i in range(0, int(min_index - 60*MAX_TIME)):
+        curr_velocities = v[middle + i: curr_end+1]
         v_d = curr_velocities[0]
-        if i == 0:
-            print(curr_end)
-            print(len(curr_velocities))
-            print(len(v))
-            print(v_d)
-        t = np.arange(MIN_TIME*60 - i) / FPS
+        t = np.arange(len(curr_velocities)) / FPS
         
         comparison = []
         curr_info = {}
-        time_to_zero = MIN_TIME - i/FPS
+        time_to_zero = t[-1]
         tau = time_to_zero / v_d
         dec_func = decelar(v_d, tau)
         
@@ -74,9 +69,9 @@ def decelerationv2(v, curr_end):
             best_tau = tau
             best_v_d = v_d
             best_time_to_zero = time_to_zero
-        curr_info[f'v_d={v_d:.2f}'] = {'ecm': ecm, 'tau': tau, 'v_d': v_d, 'time_to_zero': time_to_zero}
-        info[f'tau={tau:.2f}'] = curr_info
-    info['best'] = {'ecm': best_ecm, 'tau_dec': best_tau, 'v_d': best_v_d, 'time_to_zero': best_time_to_zero}
+       # curr_info[f'v_d={v_d:.2f}'] = {'ecm': ecm, 'tau': tau, 'v_d': v_d, 'time_to_zero': time_to_zero}
+       # info[f'tau={tau:.2f}'] = curr_info
+    info = {'ecm': best_ecm, 'tau_dec': best_tau, 'v_d': best_v_d, 'time_to_zero': best_time_to_zero}
     
     return info
             
@@ -114,7 +109,8 @@ for key in keys:
         
         if idea == 'deceleration':
             if i+1 in EVENTS:
-                curr_deceleration_info[f'event_{i}'] = decelerationv2(v, curr_end)
+                min_index = curr_end - middles[i]
+                curr_deceleration_info[f'event_{i+1}'] = decelerationv2(v, curr_end, min_index, middle=middles[i])
             curr_end = curr_pastos[2*(i+1)] - curr_pastos[2*i] if i != len(events) - 1 else 0   # If last event, no need to set curr_end
         elif idea == 'acceleration':
             t, v, func, func_args = parameters_for_accleration(i, v, middles)
