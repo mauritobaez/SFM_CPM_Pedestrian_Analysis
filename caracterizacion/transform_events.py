@@ -7,8 +7,8 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
-EVENTS = [1, 2, 3, 4, 5, 6, 7, 8]  # Events to process
+FILES_TO_USE = [2]  # Use all files from 01 to 14
+EVENTS = [3]  # Events to process
 folder_name = 'trans_events_by_ped'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 ACC = False
 DEC = True
@@ -51,7 +51,8 @@ for key in keys:
     curr_pasto = pastos[key]['values']
     prev_end_stop = 0   # No hace falta que sea el start porque ya viene cortado el evento por el divide_in_events.py
     taus = pastos[key]['taus']
-    shift = pastos[key]['start']/60
+    initial_offset = pastos[key]['start']
+    shift = 0
     middles = []
     ped_dec_info = dec_info[key]    
     
@@ -80,21 +81,21 @@ for key in keys:
         
         if DEC:
             event_dec_info = ped_dec_info[f'event_{i+1}']
-            end_dec = (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 if i != 0 else (curr_pasto[0])/60
+            end_dec = (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 if i != 0 else (curr_pasto[0] - initial_offset)/60
             dec_tau = event_dec_info['tau_dec']
             dec_start_vel = event_dec_info['v_d']
             dec_start_time = end_dec - event_dec_info['time_to_zero']
             theoretical_v_dec = dec_start_vel * np.exp(-(t - dec_start_time + shift) / dec_tau)
             theoretical_v_dec2 = theoretical_v_dec[int(dec_start_time*60): int(end_dec * 60)]
             t_dec = t[int(dec_start_time*60): int(end_dec * 60)]
-            fig.add_trace(go.Scatter(x=t, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='red', dash='dash')))
-            fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec2, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='blue', dash='dash')))
+            fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec2, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='purple', dash='dash')))
+            add_vertical_line(fig, dec_start_time - shift, color='green', width=2, showlegend=True, legend='Start Deceleration') 
             
         if i != 0:
             add_vertical_line(fig, prev_end_stop/60 - shift, color='black', width=2, showlegend=False)  # Start acceleration
             add_vertical_line(fig, (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 - shift, color='black', width=2, showlegend=False) # End deceleration
         else:
-            add_vertical_line(fig, (curr_pasto[0])/60 - shift, color='black', width=2, showlegend=False)    # End deceleration
+            add_vertical_line(fig, (curr_pasto[0] - initial_offset)/60, color='black', width=2, showlegend=False)    # End deceleration
         
         if i != len(events) - 1:
             prev_end_stop = curr_pasto[2*i + 1] - curr_pasto[2*i]

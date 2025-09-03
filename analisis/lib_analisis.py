@@ -11,8 +11,8 @@ def acceleration(parameter):
         return parameter * (1 - np.exp(-t / tau))
     return acc
 
-def decelar(parameter, tau):
-    def decel(t):
+def decelar(parameter):
+    def decel(t, tau):
         return parameter * np.exp(-t / tau)
     return decel
 
