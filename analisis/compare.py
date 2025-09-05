@@ -7,7 +7,7 @@ from lib_analisis import acceleration, best_fit, decelar, get_events, get_pastos
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [1, 2, 3, 4, 5, 6, 7, 8]
 folder_name = 'trans_events_by_ped'
-output_file = 'events_dec_info'  # 'pastos_with_taus'
+output_file = 'events_dec_info_extra'  # 'pastos_with_taus'
 output_file_with_no_values = 'taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 FPS = 60
@@ -18,10 +18,9 @@ def deceleration(v, curr_end, middle):
     best_tau = None
     best_v_d = None
     best_time_to_zero = None
-    #info = {}
-    MAX_TIME = 1
     v_d = v[middle]
-    for i in range(middle, curr_end - int(MAX_TIME*FPS)):
+
+    for i in range(middle, curr_end):
         
         curr_velocities = v[i: curr_end+1]
         t = np.arange(len(curr_velocities)) / FPS
@@ -35,9 +34,10 @@ def deceleration(v, curr_end, middle):
             best_time_to_zero = t[-1]
             
         v_d = v_d + (v[i+1] - v_d) / (i+1 - middle + 1)
-       # curr_info[f'v_d={v_d:.2f}'] = {'ecm': ecm, 'tau': tau, 'v_d': v_d, 'time_to_zero': time_to_zero}
-       # info[f'tau={tau:.2f}'] = curr_info
-    info = {'ecm': best_ecm, 'tau_dec': best_tau, 'v_d': best_v_d, 'time_to_zero': best_time_to_zero}
+
+    target_velocity = v[curr_end]
+    time_according_to_equation = best_tau * np.log(best_v_d / target_velocity)
+    info = {'ecm': best_ecm, 'tau_dec': best_tau, 'v_d': best_v_d, 'time_to_zero': best_time_to_zero, 'target_velocity': target_velocity, 'time_according_to_equation': time_according_to_equation, 'difference_in_time': abs(best_time_to_zero - time_according_to_equation)}
     
     return info
             

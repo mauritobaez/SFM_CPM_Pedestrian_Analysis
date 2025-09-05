@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import mplcursors
 
-FILES_TO_USE = [12]# [i for i in range(1, 15)]
+from data_lib import fft_filter
+
+FILES_TO_USE = [2]# [i for i in range(1, 15)]
 keys= []
 for i in FILES_TO_USE:
     key = f"{i:02}"
@@ -15,7 +17,7 @@ vX = []
 vY = []
 vSqrt = []
 
-with open(f"./archivosGerman/{folder_name}/tXYvXvY{key}.txt", "r") as values:
+with open(f"./archivosGerman/datos/{folder_name}/tXYvXvY{key}.txt", "r") as values:
             lines = values.readlines()
 
 for line in lines:
@@ -27,11 +29,33 @@ for line in lines:
 
 # Initial scatter plot
 fig, ax = plt.subplots()
-ln, = ax.plot(time, vSqrt, color='#a3a7e4', linewidth=1)  # lines instead of dots
+
+vSqrt = vSqrt[555:961]
+vX = vX[555:961]
+
+
+time = np.arange(len(vX))/60
+
+vx_filtered = fft_filter(vX, fs=60, highcut=1)
+
+ln, = ax.plot(time, vX, color='#a3a7e4', linewidth=1)  # lines instead of dots
 sc = ln  # For mplcursors compatibility
 
 # mplcursors allows clicking on points
 cursor = mplcursors.cursor(sc, hover=False)
+
+
+
+# Plot vSqrt on the same graph
+ln_sqrt, = ax.plot(time, vSqrt, color='#e4a3a7', linewidth=1, label='vSqrt')
+ax.legend(['vX', 'vSqrt'])
+
+
+
+ln_filtered, = ax.plot(time, vx_filtered, color='#7ae4a3', linewidth=1, label='vX Filtered')
+ax.legend(['vX', 'vSqrt', 'vX Filtered'])
+
+
 
 pastos = []
 
