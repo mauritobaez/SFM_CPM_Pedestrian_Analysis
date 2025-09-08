@@ -3,69 +3,76 @@ import os
 from data_lib import fft_filter, hampel_filter
 
 
-FILES_TO_USE = [2, 4]  # Use all files from 01 to 14
+FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 keys= []
 for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
     
 folder_name = "with_sqrt"  # This is the folder with the sqrt values
-folder_name_output = "trans_events_by_ped"  # Output folder for events
+folder_name_output = "only_events"  # Output folder for events
 
 pastos = {} 
-pastos['01'] = [0, [235, 362, 762, 946, 1330, 1531, 1892, 2097, 2517, 2681, 3022, 3095, 3429, 3469, 3805]]
-pastos['02'] = [0, [374, 563, 958, 1142, 1568, 1703, 2142, 2286, 2659, 2669, 3037, 3059, 3425, 3464, 3908]]
-pastos['03'] = [0, [313, 468, 807, 1044, 1392, 1647, 1975, 2092, 2388, 2440, 2726, 2834, 3136, 3268, 3632]]
-pastos['04'] = [104, [483, 691, 1094, 1243, 1629, 1654, 2026, 2043, 2394, 2412, 2772, 2893, 3263, 3327, 3727]]
-pastos['05'] = [0, [355, 553, 856, 937, 1273, 1316, 1648, 1734, 2050, 2161, 2468, 2595, 2908, 3045, 3342]]
-pastos['06'] = [82, [428, 468, 815, 852, 1148, 1250, 1567, 1671, 2015, 2124, 2446, 2573, 2890, 2937, 3292]]
-pastos['07'] = [0, [324, 387, 705, 799, 1114, 1244, 1574, 1683, 2022, 2122, 2455, 2474, 2833, 2872, 3221]]
-pastos['08'] = [49, [406, 472, 792, 874, 1233, 1324, 1689, 1795, 2137, 2204, 2545, 2592, 2924, 3025, 3368]]
-pastos['09'] = [0, [313, 486, 787, 902, 1223, 1301, 1646, 1695, 2021, 2141, 2441, 2578, 2901, 2994, 3317]]
-pastos['10'] = [57, [417, 511, 892, 969, 1325, 1357, 1701, 1764, 2110, 2194, 2508, 2632, 2950, 3062, 3389]]
-pastos['11'] = [0, [350, 458, 788, 828, 1189, 1278, 1589, 1726, 2066, 2141, 2502, 2562, 2909, 2979, 3304]]
-pastos['12'] = [17, [344, 356, 658, 757, 1110, 1190, 1521, 1602, 1946, 2018, 2335, 2435, 2739, 2821, 3145]]
-pastos['13'] = [0, [379, 413, 754, 792, 1166, 1235, 1605, 1615, 1970, 2011, 2381, 2426, 2762, 2802, 3163]]
-pastos['14'] = [0, [374, 481, 825, 891, 1254, 1346, 1651, 1677, 1990, 2033, 2395, 2461, 2780, 2838, 3142]]
+pastos['01'] = [[1, 235], [362, 762], [946, 1337], [1532, 1905], [2096, 2521], [2674, 3031], [3095, 3429], [3463, 3820]]
+pastos['02'] = [[2, 373], [564, 992], [1142, 1562], [1694, 2159], [2285, 2659], [2669, 3043], [3045, 3433], [3453, 3908]]
+pastos['03'] = [[1, 313], [464, 806], [1024, 1392], [1625, 2001], [2063, 2388], [2434, 2747], [2814, 3136], [3259, 3632]]
+pastos['04'] = [[104, 483], [692, 1038], [1243, 1626], [1654, 2019], [2044, 2393], [2419, 2766], [2894, 3221], [3314, 3674]]
+pastos['05'] = [[6, 362], [553, 856], [937, 1282], [1306, 1652], [1722, 2050], [2139, 2477], [2568, 2908], [3046, 3342]]
+pastos['06'] = [[82, 427], [469, 818], [850, 1148], [1246, 1567], [1666, 2012], [2122, 2445], [2574, 2897], [2933, 3283]]
+pastos['07'] = [[1, 331], [387, 704], [787, 1113], [1245, 1587], [1673, 2021], [2120, 2453], [2474, 2833], [2870, 3221]]
+pastos['08'] = [[33, 406], [463, 798], [861, 1233], [1324, 1696], [1792, 2136], [2204, 2545], [2593, 2934], [3014, 3368]]
+pastos['09'] = [[0, 316], [476, 793], [885, 1222], [1294, 1659], [1692, 2021], [2123, 2450], [2541, 2919], [2993, 3320]]
+pastos['10'] = [[58, 425], [498, 892], [963, 1324], [1354, 1709], [1757, 2116], [2190, 2524], [2632, 2953], [3043, 3401]]
+pastos['11'] = [[4, 379], [458, 788], [828, 1189], [1268, 1620], [1710, 2065], [2129, 2499], [2558, 2915], [2958, 3305]]
+pastos['12'] = [[14, 343], [351, 658], [751, 1113], [1181, 1558], [1577, 1951], [2015, 2336], [2431, 2741], [2812, 3180]]
+pastos['13'] = [[3, 381], [412, 753], [792, 1166], [1207, 1604], [1614, 1975], [2008, 2379], [2408, 2765], [2799, 3162]]
+pastos['14'] = [[2, 374], [473, 824], [870, 1254], [1316, 1651], [1675, 1989], [2023, 2395], [2446, 2779], [2837, 3142]]
 FPS = 60  # Frames per second
 VX_INDEX = 3
 VY_INDEX = 4
+AMOUNT_ZEROES = 30  # Amount of zeroes to add at the beginning and end of each event
 
 for key in keys:
 
     with open(f"./archivosGerman/datos/{folder_name}/tXYvXvY{key}.txt", "r") as values:
         lines = values.readlines()
             
-    # Se puede usar pastos + [len(lines)]
-    curr_pasto = pastos[key][1]
-    start_idx = pastos[key][0]
     event_counter = 0
-    for i in range(1, len(curr_pasto)+1, 2):
-        end_idx = curr_pasto[i] if i != len(curr_pasto) else curr_pasto[-1]
-        event_lines = lines[start_idx:end_idx+1]
+    for inicio_fin in pastos[key]:
+        event_lines = lines[inicio_fin[0]:inicio_fin[1]+1]
         v = []
+        v_index = VY_INDEX if event_counter == 2 or event_counter == 5 else VX_INDEX
         for lin in event_lines:
             line_values = lin.split(sep='\t')
-            v.append(float(line_values[VY_INDEX if event_counter == 2 or event_counter == 5 else VX_INDEX]))
+            v.append(float(line_values[v_index]))
         event_counter += 1
+        
+        # Probar con poner esto después del filtro de hampel
+        v = [0.0]*AMOUNT_ZEROES + v + [0.0]*AMOUNT_ZEROES
         
         v_filtered = hampel_filter(v, 19, 2)
         v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)
         
         # Replace each line in event_lines with t, x, y, v (where v is the filtered value)
         new_event_lines = []
+        
+        # Quizás ni hace falta agregar esto!
+        for i in range(AMOUNT_ZEROES):
+            new_event_lines.append(f"0\t0\t0\t{v_fft1[i]}\t0.0\n")
+        
         for idx, lin in enumerate(event_lines):
             line_values = lin.strip().split('\t')
             t, x, y = line_values[0], line_values[1], line_values[2]
-            v_val = v_fft1[idx]
-            new_event_lines.append(f"{t}\t{x}\t{y}\t{v_val}\t{v[idx]}\n")
+            v_val = v_fft1[idx+AMOUNT_ZEROES]
+            new_event_lines.append(f"{t}\t{x}\t{y}\t{v_val}\t{v[idx+AMOUNT_ZEROES]}\n")
         event_lines = new_event_lines
+        
+        for i in range(AMOUNT_ZEROES):
+            new_event_lines.append(f"0\t0\t0\t{v_fft1[-AMOUNT_ZEROES+i]}\t0.0\n")
         
         if not os.path.exists(folder_name_output):
             os.makedirs(folder_name_output) 
         
-        with open(f"{folder_name_output}/ped_{key}_event_{i//2 + 1}.txt", "w") as out_file:
+        with open(f"{folder_name_output}/ped_{key}_event_{event_counter}.txt", "w") as out_file:
             out_file.writelines(event_lines)
-        start_idx = curr_pasto[i-1]
-
 

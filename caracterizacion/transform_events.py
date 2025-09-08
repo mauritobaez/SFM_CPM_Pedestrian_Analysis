@@ -7,11 +7,12 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
+FILES_TO_USE = [2]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
-folder_name = 'trans_events_by_ped'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+folder_name = 'only_events'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 ACC = False
-DEC = True
+DEC = False
+AMOUNT_ZEROES = 30
 FPS = 60
 keys= []
 
@@ -36,6 +37,12 @@ for key in keys:
         x = []
         y = []
         v = []
+        v_with_nothing = []
+        
+        if event_number in [3, 4, 5, 6]:
+            multiply = -1.0
+        else:
+            multiply = 1.0
         
         with open(f"archivosGerman/{folder_name}/ped_{key}_event_{event_number}.txt", "r") as values:
             lines = values.readlines()
@@ -44,17 +51,17 @@ for key in keys:
             t.append(float(line_values[0]))
             x.append(float(line_values[1]))
             y.append(float(line_values[2]))
-            v.append(abs(float(line_values[3])))
+            v.append(float(line_values[3]) * multiply)
+            v_with_nothing.append(float(line_values[4]) * multiply)
             
-        events.append({'t': t, 'x': x, 'y': y, 'v': v})
+        events.append({'t': t, 'x': x, 'y': y, 'v': v, 'v_with_nothing': v_with_nothing})
 
-    curr_pasto = pastos[key]['values']
-    prev_end_stop = 0   # No hace falta que sea el start porque ya viene cortado el evento por el divide_in_events.py
+    #curr_pasto = pastos[key]['values']
+    #prev_end_stop = 0   # No hace falta que sea el start porque ya viene cortado el evento por el divide_in_events.py
     taus = pastos[key]['taus']
-    initial_offset = pastos[key]['start']
-    shift = 0
-    middles = []
-    ped_dec_info = dec_info[key]    
+    #initial_offset = pastos[key]['start']
+    shift = AMOUNT_ZEROES / FPS
+    ped_dec_info = dec_info[key]
     
     
     for i, event in enumerate(events):
@@ -63,14 +70,16 @@ for key in keys:
         x = event['x']
         y = event['y']
         v = event['v']
-        #t = event['t']
+        v_with_nothing = event['v_with_nothing']
         t = np.arange(len(v)) / FPS
-        if i != 0:
-            shift = t[prev_end_stop]
+        
         t = np.array(t) - shift
+        
+        fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
         fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
-        middle = get_middle(y if i == 2 or i == 5 else x, prev_end_stop)
+        
+        middle = get_middle(y if i == 2 or i == 5 else x, AMOUNT_ZEROES)
         add_vertical_line(fig, t[middle], color='blue', width=2, showlegend=False)
         
         if ACC:
@@ -81,7 +90,7 @@ for key in keys:
         
         if DEC:
             event_dec_info = ped_dec_info[f'event_{i+1}']
-            end_dec = (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 if i != 0 else (curr_pasto[0] - initial_offset)/60
+            end_dec = t[-AMOUNT_ZEROES-1]
             dec_tau = event_dec_info['tau_dec']
             dec_start_vel = event_dec_info['v_d']
             dec_start_time = end_dec - event_dec_info['time_to_zero']
@@ -91,19 +100,12 @@ for key in keys:
             fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec2, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='purple', dash='dash')))
             add_vertical_line(fig, dec_start_time - shift, color='green', width=2, showlegend=True, legend='Start Deceleration') 
             
-        if i != 0:
-            add_vertical_line(fig, prev_end_stop/60 - shift, color='black', width=2, showlegend=False)  # Start acceleration
-            add_vertical_line(fig, (curr_pasto[2*i] - curr_pasto[2*i - 2])/60 - shift, color='black', width=2, showlegend=False) # End deceleration
-        else:
-            add_vertical_line(fig, (curr_pasto[0] - initial_offset)/60, color='black', width=2, showlegend=False)    # End deceleration
-        
-        if i != len(events) - 1:
-            prev_end_stop = curr_pasto[2*i + 1] - curr_pasto[2*i]
-            
+        add_vertical_line(fig, 0, color='black', width=2, showlegend=False)  # Start acceleration
+        add_vertical_line(fig, t[-AMOUNT_ZEROES-1], color='black', width=2, showlegend=False) # End deceleration       
     
         if i+1 not in EVENTS:
             continue
-                
+        
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
         fig.update_layout(
@@ -118,17 +120,15 @@ for key in keys:
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 
-        #middles.append(middle)
-        #fig.show()
+        fig.show()
 
-        name = "dec_events_fit"
-        if not os.path.exists(f"./{name}"):
-           os.makedirs(f"./{name}")
-        fig.write_image(
-           f"./{name}/speeds_{key}_{(i+1):02}.png",
-           width=1920,
-           height=1080,
-           scale=2  # Higher scale for better resolution
-        )
-    #print(f"Processed pedestrian {key} with {len(events)} events. Middle indices: {middles}")
+        #name = "dec_events_fit"
+        #if not os.path.exists(f"./{name}"):
+        #   os.makedirs(f"./{name}")
+        #fig.write_image(
+        #   f"./{name}/speeds_{key}_{(i+1):02}.png",
+        #   width=1920,
+        #   height=1080,
+        #   scale=2  # Higher scale for better resolution
+        #)
         
