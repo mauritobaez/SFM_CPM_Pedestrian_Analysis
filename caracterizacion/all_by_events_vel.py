@@ -1,7 +1,6 @@
 
 import plotly.graph_objects as go
 from lib import add_vertical_line, get_all_events, get_all_values, get_all_values_and_positions, get_avg_speeds_around_positions, get_middle, get_middles, get_next_local_minimum, get_prev_local_minimum, get_reduced_stops, get_stops_complete
-from regression import double_linear_regression
 import os
 
 FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14

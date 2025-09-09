@@ -17,7 +17,7 @@ def decelar(parameter):
     return decel
 
 def get_pastos():
-    with open(f"analisis/pastos.json", "r") as f:
+    with open(f"analisis/nuevos_pastos.json", "r") as f:
         pastos_data = json.load(f)
         if 'pastos' in pastos_data:
             pastos = pastos_data['pastos']
@@ -35,12 +35,15 @@ def get_events(folder_name: str, key: str):
         v = []
         with open(f"archivosGerman/{folder_name}/ped_{key}_event_{event_number}.txt", "r") as values:
             lines = values.readlines()
-        for line in lines:
+        for i, line in enumerate(lines):
             line_values = line.split(sep='\t')
+            multiply = 1.0
+            if event_number in [3, 4, 5, 6]:
+                multiply = -1.0
             t.append(float(line_values[0]))
             x.append(float(line_values[1]))
             y.append(float(line_values[2]))
-            v.append(abs(float(line_values[3])))    # Ojo que usamos el valor absoluto de la velocidad
+            v.append(float(line_values[3])*multiply)    # Ojo que usamos el valor absoluto de la velocidad
         events.append({'t': t, 'x': x, 'y': y, 'v': v})
         
     return events
@@ -54,7 +57,12 @@ def best_fit(t, v, model=acceleration, model_args=None):
     tau_fit = popt[0]
         
     # Calcular el Error Cuadrático Medio (ECM) entre los valores ajustados y los reales
-    v_fit = model(*model_args)(t, tau_fit)
-    ecm = np.mean((v - v_fit) ** 2)
+    function = model(*model_args)
+    errors = []
+    for i, curr_t in enumerate(t):
+        v_fit = function(curr_t, tau_fit)
+        errors.append((v_fit - v[i]) ** 2)
+        
+    ecm = np.mean(errors)
     return tau_fit, ecm
     

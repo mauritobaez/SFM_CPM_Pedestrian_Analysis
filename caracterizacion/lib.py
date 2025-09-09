@@ -198,7 +198,7 @@ def get_middle(positions, prev_end_stop):
     curr_index = prev_end_stop
     curr_meter = positions[prev_end_stop]
     while curr_index < len(positions):
-        if positions[curr_index] == 0:
+        if positions[curr_index] == 0.0:
             curr_index += 1
             continue
         if 3.25 < abs(curr_meter - positions[curr_index]):

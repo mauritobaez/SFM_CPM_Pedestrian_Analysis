@@ -7,16 +7,16 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [2]  # Use all files from 01 to 14
+FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-ACC = False
+ACC = True
 DEC = False
 AMOUNT_ZEROES = 30
 FPS = 60
 keys= []
 
-with open(f"analisis/pastos_with_taus.json", "r") as f:
+with open(f"analisis/nuevos_pastos.json", "r") as f:
     pastos_data = json.load(f)
     if 'pastos' in pastos_data:
         pastos = pastos_data['pastos']
@@ -27,7 +27,7 @@ for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
 
-with open(f"analisis/events_dec_info.json", "r") as f:
+with open(f"analisis/viejos/events_dec_info.json", "r") as f:
     dec_info = json.load(f)["deceleration_info"]
 
 for key in keys:
@@ -62,7 +62,7 @@ for key in keys:
     #initial_offset = pastos[key]['start']
     shift = AMOUNT_ZEROES / FPS
     ped_dec_info = dec_info[key]
-    
+    middles = []
     
     for i, event in enumerate(events):
         
@@ -75,7 +75,7 @@ for key in keys:
         
         t = np.array(t) - shift
         
-        fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
+        #fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
         fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
         
@@ -85,8 +85,9 @@ for key in keys:
         if ACC:
             tau = taus[i]
             mid_vel = v[middle]
-            theoretical_v = mid_vel * (1 - np.exp(-t / tau))
-            fig.add_trace(go.Scatter(x=t, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
+            ts = t[AMOUNT_ZEROES:middle+1]
+            theoretical_v = mid_vel * (1 - np.exp(-ts / tau))
+            fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
         
         if DEC:
             event_dec_info = ped_dec_info[f'event_{i+1}']
@@ -116,19 +117,19 @@ for key in keys:
             template="plotly_white",
             showlegend=True,
             font=dict(size=20),
-            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-5, 12]),
+            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-1, 9]),
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 
-        fig.show()
+        #fig.show()
 
-        #name = "dec_events_fit"
-        #if not os.path.exists(f"./{name}"):
-        #   os.makedirs(f"./{name}")
-        #fig.write_image(
-        #   f"./{name}/speeds_{key}_{(i+1):02}.png",
-        #   width=1920,
-        #   height=1080,
-        #   scale=2  # Higher scale for better resolution
-        #)
+        name = "smooth_vs_acceleration"
+        if not os.path.exists(f"./{name}"):
+           os.makedirs(f"./{name}")
+        fig.write_image(
+           f"./{name}/speeds_{key}_{(i+1):02}.png",
+           width=1920,
+           height=1080,
+           scale=2  # Higher scale for better resolution
+        )
         
