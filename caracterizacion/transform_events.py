@@ -9,14 +9,19 @@ from lib import add_vertical_line, get_middle
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
-folder_name = 'only_events'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+folder_name = 'only_events_120'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+file_with_acc_info = 'analisis/sin_nada'  # File with acceleration info
 ACC = True
 DEC = False
-AMOUNT_ZEROES = 30
+DOUBLE_LINES = False
+SHOW = False
+SAVE = True
+name = 'normal_vs_acceleration_120'  # Folder to save images
+AMOUNT_ZEROES = 120
 FPS = 60
 keys= []
 
-with open(f"analisis/nuevos_pastos.json", "r") as f:
+with open(f"{file_with_acc_info}.json", "r") as f:
     pastos_data = json.load(f)
     if 'pastos' in pastos_data:
         pastos = pastos_data['pastos']
@@ -27,7 +32,7 @@ for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
 
-with open(f"analisis/viejos/events_dec_info.json", "r") as f:
+with open(f"analisis/dec.json", "r") as f:
     dec_info = json.load(f)["deceleration_info"]
 
 for key in keys:
@@ -56,15 +61,15 @@ for key in keys:
             
         events.append({'t': t, 'x': x, 'y': y, 'v': v, 'v_with_nothing': v_with_nothing})
 
-    #curr_pasto = pastos[key]['values']
-    #prev_end_stop = 0   # No hace falta que sea el start porque ya viene cortado el evento por el divide_in_events.py
     taus = pastos[key]['taus']
-    #initial_offset = pastos[key]['start']
     shift = AMOUNT_ZEROES / FPS
     ped_dec_info = dec_info[key]
     middles = []
     
     for i, event in enumerate(events):
+        
+        if i+1 not in EVENTS:
+            continue
         
         fig = go.Figure()
         x = event['x']
@@ -75,7 +80,7 @@ for key in keys:
         
         t = np.array(t) - shift
         
-        #fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
+        fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
         fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
         
@@ -91,45 +96,55 @@ for key in keys:
         
         if DEC:
             event_dec_info = ped_dec_info[f'event_{i+1}']
-            end_dec = t[-AMOUNT_ZEROES-1]
-            dec_tau = event_dec_info['tau_dec']
-            dec_start_vel = event_dec_info['v_d']
-            dec_start_time = end_dec - event_dec_info['time_to_zero']
-            theoretical_v_dec = dec_start_vel * np.exp(-(t - dec_start_time + shift) / dec_tau)
-            theoretical_v_dec2 = theoretical_v_dec[int(dec_start_time*60): int(end_dec * 60)]
-            t_dec = t[int(dec_start_time*60): int(end_dec * 60)]
-            fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec2, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='purple', dash='dash')))
-            add_vertical_line(fig, dec_start_time - shift, color='green', width=2, showlegend=True, legend='Start Deceleration') 
+            best_time = event_dec_info['best_time'] - AMOUNT_ZEROES / FPS
+            best_first_m = event_dec_info['best_first_m']
+            best_second_m = event_dec_info['best_second_m']
+            best_first_b = event_dec_info['best_first_b']
+            best_second_b = event_dec_info['best_second_b']
+            add_vertical_line(fig, best_time, color='green', width=2, showlegend=True, legend='Start Deceleration')
+            if DOUBLE_LINES:
+                first_time = np.array([t[middle], best_time])
+                second_time = np.array([best_time, t[-AMOUNT_ZEROES-1]])            
+                first_line = best_first_m * (first_time-t[middle]) + best_first_b
+                second_line = best_second_m * (second_time-best_time) + best_second_b
+                fig.add_trace(go.Scatter(x=first_time, y=first_line, mode='lines', name='Best Fit 1', line=dict(color='purple', dash='dash')))
+                fig.add_trace(go.Scatter(x=second_time, y=second_line, mode='lines', name='Best Fit 2', line=dict(color='purple', dash='dash')))
+            
+            tau = event_dec_info['tau']
+            v_M = event_dec_info['velocity_at_best_time']
+            t_dec = t[int(best_time*60): -AMOUNT_ZEROES-1]
+            theoretical_v_dec = v_M * np.exp(-(t_dec - best_time) / tau)
+            fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='brown', dash='dash')))
+            
             
         add_vertical_line(fig, 0, color='black', width=2, showlegend=False)  # Start acceleration
         add_vertical_line(fig, t[-AMOUNT_ZEROES-1], color='black', width=2, showlegend=False) # End deceleration       
     
-        if i+1 not in EVENTS:
-            continue
         
         fig.update_xaxes(showgrid=False, dtick=5) 
         fig.update_yaxes(showgrid=False)
         fig.update_layout(
-            title=f"Event {i+1} - Pedestrian {key}",
+            title=f"Pedestrian {key} - Event {i+1}",
             xaxis_title="Time [s]",
             yaxis_title="Velocity [m/s]",
             legend=dict(title="Legend"),
             template="plotly_white",
             showlegend=True,
             font=dict(size=20),
-            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-1, 9]),
+            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-2.5, 10.5]),
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 
-        #fig.show()
+        if SHOW:
+            fig.show()
 
-        name = "smooth_vs_acceleration"
-        if not os.path.exists(f"./{name}"):
-           os.makedirs(f"./{name}")
-        fig.write_image(
-           f"./{name}/speeds_{key}_{(i+1):02}.png",
-           width=1920,
-           height=1080,
-           scale=2  # Higher scale for better resolution
-        )
+        if SAVE:
+            if not os.path.exists(f"./{name}"):
+                os.makedirs(f"./{name}")
+            fig.write_image(
+            f"./{name}/speeds_{key}_{(i+1):02}.png",
+            width=1920,
+            height=1080,
+            scale=2  # Higher scale for better resolution
+            )
         

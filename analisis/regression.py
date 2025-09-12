@@ -47,7 +47,7 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
             best_second_b = second_b
             best_i = i
     
-    print(f"Best i: {best_i}, best i / 60: {best_i/60}, Best time: {best_time}")
+    #print(f"Best i: {best_i}, best i / 60: {best_i/60}, Best time: {best_time}")
     return best_time, best_first_m, best_second_m, best_first_b, best_second_b
 
 

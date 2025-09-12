@@ -26,8 +26,12 @@ def get_pastos():
     return pastos
 
 
-def get_events(folder_name: str, key: str):
+def get_events(folder_name: str, key: str, basic: bool = False):
     events = []
+    if basic:
+        index_for_v = 4
+    else:
+        index_for_v = 3
     for event_number in range(1, 9):
         t = []
         x = []
@@ -43,7 +47,7 @@ def get_events(folder_name: str, key: str):
             t.append(float(line_values[0]))
             x.append(float(line_values[1]))
             y.append(float(line_values[2]))
-            v.append(float(line_values[3])*multiply)    # Ojo que usamos el valor absoluto de la velocidad
+            v.append(float(line_values[index_for_v])*multiply) # Velocity with nothing applied OJO
         events.append({'t': t, 'x': x, 'y': y, 'v': v})
         
     return events

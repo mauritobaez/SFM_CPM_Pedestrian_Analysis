@@ -1,7 +1,7 @@
 
 import plotly.graph_objects as go
 from lib import add_vertical_line, get_all_values_and_positions, get_avg_speeds_around_positions, get_middles, get_reduced_stops, get_stops_complete
-from regression import double_linear_regression
+from analisis.regression import double_linear_regression
 import os
 
 FILES_TO_USE = [3]  
