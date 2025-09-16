@@ -6,14 +6,14 @@ from lib_analisis import acceleration, best_fit, decelar, get_events, get_pastos
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
-EVENTS = [1, 2, 3, 4, 5, 6, 7, 8]
-folder_name = 'only_events_120'
-output_file = 'sin_nada'  # 'pastos_with_taus'
+EVENTS = [i for i in range(1,9)]
+folder_name = 'only_events'
+output_file = 'dec'  # 'pastos_with_taus'
 output_file_with_no_values = 'taus_dec'
-idea = 'acceleration' # 'acceleration' or 'deceleration'
+idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
-AMOUNT_ZEROES = 120
+AMOUNT_ZEROES = 30
 
 def deceleration(v, curr_end, middle, positions=[]):
     

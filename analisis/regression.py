@@ -8,14 +8,12 @@ import numpy as np
 #    return sum([(velocities[i] - (c * (time[i]-initial_time) + initial_velocity)) ** 2 for i in range(index_start, index_end + 1)])
 
 def linear_regression_best(velocities, time, index_start, index_end):
-    # Zero-base the time array for the regression segment
     time_segment = np.array(time[index_start:index_end + 1])
-    time_zeroed = time_segment - time_segment[0]
     velocities_segment = np.array(velocities[index_start:index_end + 1])
-    # Fit a line: y = m*x + b
-    best_m, best_b = np.polyfit(time_zeroed, velocities_segment, 1)
+    # Fit a line using original time values: y = mx + b
+    best_m, best_b = np.polyfit(time_segment, velocities_segment, 1)
     # Compute predicted velocities
-    predicted = best_m * time_zeroed + best_b
+    predicted = best_m * time_segment + best_b
     # Compute least squares error (cost)
     error = np.sum((velocities_segment - predicted) ** 2)
     return best_m, best_b, error
@@ -33,11 +31,13 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
         second_m, second_b, second_error = linear_regression_best(complete_velocities, time, i, index_end)
         if first_error + second_error < best_error:
             best_error = first_error + second_error
-            # Calculate intersection point between the two lines: first_m*x + first_b = second_m*x + second_b
+            # Calculate intersection point between the two lines
+            # First line: y = first_m * t + first_b
+            # Second line: y = second_m * t + second_b
             if first_m != second_m:
-                numerator = first_m * time[index_start] - second_m * time[i] + second_b - first_b   # Lo de time es para ajustarlo porque las líneas no empiezan en el mismo t
-                denominator = first_m - second_m
-                best_time = numerator / denominator
+                # At intersection: first_m * t + first_b = second_m * t + second_b
+                # (first_m - second_m) * t = second_b - first_b
+                best_time = (second_b - first_b) / (first_m - second_m)
             else:
                 print(f"Warning: Lines are parallel at indices {index_start} and {index_end}, using index {i} as fallback.")
                 best_time = i  # fallback if lines are parallel
