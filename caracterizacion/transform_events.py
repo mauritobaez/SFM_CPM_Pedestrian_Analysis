@@ -7,8 +7,8 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [4]  # Use all files from 01 to 14
-EVENTS = [3]  # Events to process
+FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
+EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/sin_nada'  # File with acceleration info
 DEC_NAME = 'dec'

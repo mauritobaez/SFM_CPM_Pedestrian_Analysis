@@ -6,16 +6,17 @@ import numpy as np
 
 
 FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
+FILE = 'acc_raw_60'  # 'pastos_with_taus'
 
 keys = []
 for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
 
-with open(f"analisis/taus.json", "r") as f:
+with open(f"analisis/{FILE}.json", "r") as f:
     pastos_data = json.load(f)
-    if 'pedestrians' in pastos_data:
-        data = pastos_data['pedestrians']
+    if 'pastos' in pastos_data:
+        data = pastos_data['pastos']
     else:
         raise KeyError("Key 'pastos' not found in pastos.json")
 
@@ -38,7 +39,7 @@ data['all'] = {
     'std_tau': std_all
 }
 
-with open("analisis/taus.json", "w") as f_out:
-    json.dump({'pedestrians': data}, f_out, indent=4)
+with open(f"analisis/{FILE}.json", "w") as f_out:
+    json.dump({'pastos': data}, f_out, indent=4)
 
     

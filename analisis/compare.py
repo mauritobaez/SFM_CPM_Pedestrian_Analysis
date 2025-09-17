@@ -7,13 +7,13 @@ from lib_analisis import acceleration, best_fit, decelar, get_events, get_pastos
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
-folder_name = 'only_events'
-output_file = 'dec'  # 'pastos_with_taus'
+folder_name = 'only_events_60'
+output_file = 'acc_60'  # 'pastos_with_taus'
 output_file_with_no_values = 'taus_dec'
-idea = 'deceleration' # 'acceleration' or 'deceleration'
+idea = 'acceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
-AMOUNT_ZEROES = 30
+AMOUNT_ZEROES = 60
 
 def deceleration(v, curr_end, middle, positions=[]):
     

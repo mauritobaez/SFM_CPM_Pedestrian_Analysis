@@ -10,7 +10,7 @@ for i in FILES_TO_USE:
     keys.append(key)
     
 folder_name = "with_sqrt"  # This is the folder with the sqrt values
-folder_name_output = "only_events_120"  # Output folder for events
+folder_name_output = "only_events_60"  # Output folder for events
 
 pastos = {} 
 pastos['01'] = [[1, 235], [362, 762], [946, 1337], [1532, 1905], [2096, 2521], [2674, 3031], [3095, 3429], [3463, 3820]]
@@ -30,7 +30,7 @@ pastos['14'] = [[2, 374], [473, 824], [870, 1254], [1346, 1651], [1675, 1989], [
 FPS = 60  # Frames per second
 VX_INDEX = 3
 VY_INDEX = 4
-AMOUNT_ZEROES = 120  # Amount of zeroes to add at the beginning and end of each event
+AMOUNT_ZEROES = 60  # Amount of zeroes to add at the beginning and end of each event
 
 for key in keys:
 
