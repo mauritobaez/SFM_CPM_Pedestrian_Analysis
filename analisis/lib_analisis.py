@@ -16,8 +16,8 @@ def decelar(parameter):
         return parameter * np.exp(-t / tau)
     return decel
 
-def get_pastos():
-    with open(f"analisis/nuevos_pastos.json", "r") as f:
+def get_middles():
+    with open(f"analisis/middles.json", "r") as f:
         pastos_data = json.load(f)
         if 'pastos' in pastos_data:
             pastos = pastos_data['pastos']

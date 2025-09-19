@@ -2,15 +2,14 @@ import json
 import numpy as np
 
 from regression import double_linear_regression
-from lib_analisis import acceleration, best_fit, decelar, get_events, get_pastos
+from lib_analisis import acceleration, best_fit, decelar, get_events, get_middles
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60'
-output_file = 'acc_60'  # 'pastos_with_taus'
-output_file_with_no_values = 'taus_dec'
-idea = 'acceleration' # 'acceleration' or 'deceleration'
+output_file = 'dec_60'  # 'pastos_with_taus'
+idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
@@ -38,7 +37,7 @@ for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
 
-pastos = get_pastos()
+pastos = get_middles()
 deceleration_info = {}
 
 for key in keys:
@@ -70,10 +69,6 @@ for key in keys:
         pastos[key]['ecms'] = ecms
     
 
-    #pastos[key].pop('middles', None)
-    
-#with open(f"analisis/{output_file_with_no_values}.json", "w") as f_out:
-#    json.dump({'pedestrians': pastos}, f_out, indent=4)
 
 if idea == 'acceleration':
     with open(f"analisis/{output_file}.json", "w") as f_out:

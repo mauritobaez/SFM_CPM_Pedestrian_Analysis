@@ -9,32 +9,36 @@ from lib import add_vertical_line, get_middle
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
-folder_name = 'only_events'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+folder_name = 'only_events_60'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/sin_nada'  # File with acceleration info
-DEC_NAME = 'dec'
+DEC_NAME = 'dec_60'
 ACC = False
 DEC = True
 DOUBLE_LINES = True
 SHOW = False
 SAVE = True
-name = 'double_lines_30'  # Folder to save images
-AMOUNT_ZEROES = 30
+name = 'double_lines_60'  # Folder to save images
+AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
 
-with open(f"{file_with_acc_info}.json", "r") as f:
-    pastos_data = json.load(f)
-    if 'pastos' in pastos_data:
-        pastos = pastos_data['pastos']
-    else:
-        raise KeyError("Key 'pastos' not found in pastos.json")
+if ACC:
+    with open(f"{file_with_acc_info}.json", "r") as f:
+        pastos_data = json.load(f)
+        if 'pastos' in pastos_data:
+            pastos = pastos_data['pastos']
+        else:
+            raise KeyError("Key 'pastos' not found in pastos.json")
+
+if DEC:
+    with open(f"analisis/{DEC_NAME}.json", "r") as f:
+        dec_info = json.load(f)["deceleration_info"]
+
 
 for i in FILES_TO_USE:
     key = f"{i:02}"
     keys.append(key)
 
-with open(f"analisis/{DEC_NAME}.json", "r") as f:
-    dec_info = json.load(f)["deceleration_info"]
 
 for key in keys:
     events = []
@@ -62,10 +66,11 @@ for key in keys:
             
         events.append({'t': t, 'x': x, 'y': y, 'v': v, 'v_with_nothing': v_with_nothing})
 
-    taus = pastos[key]['taus']
+    if ACC:
+        taus = pastos[key]['taus']
     shift = AMOUNT_ZEROES / FPS
-    ped_dec_info = dec_info[key]
-    middles = []
+    if DEC:
+        ped_dec_info = dec_info[key]
     
     for i, event in enumerate(events):
         
