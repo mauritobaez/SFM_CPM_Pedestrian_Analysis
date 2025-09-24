@@ -11,13 +11,13 @@ FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/sin_nada'  # File with acceleration info
-DEC_NAME = 'dec_60'
+DEC_NAME = 'both_60'
 ACC = False
-DEC = True
+DEC = False
 DOUBLE_LINES = True
 SHOW = False
 SAVE = True
-name = 'double_lines_60'  # Folder to save images
+name = 'both_60'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -86,7 +86,7 @@ for key in keys:
         
         t = np.array(t) - shift
         
-        #fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
+        fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
         fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
         
@@ -141,7 +141,7 @@ for key in keys:
             template="plotly_white",
             showlegend=True,
             font=dict(size=20),
-            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-2.5, 10.5]),
+            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-2.5, 14.5]),
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 

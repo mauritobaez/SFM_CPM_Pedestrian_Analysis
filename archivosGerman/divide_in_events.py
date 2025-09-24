@@ -46,29 +46,42 @@ for key in keys:
             line_values = lin.split(sep='\t')
             v.append(float(line_values[v_index]))
         event_counter += 1
+                
+        v_filtered_original = hampel_filter(v, 19, 2)
         
-        # Probar con poner esto después del filtro de hampel
-        v = [0.0]*AMOUNT_ZEROES + v + [0.0]*AMOUNT_ZEROES
+        padding_values = 0.0
+        reached_objective = False
         
-        v_filtered = hampel_filter(v, 19, 2)
-        v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)
-        
+        counter = 0
+        # Menos ceros y hacer que llegue hasta el próximo valor por debajo de 0.01
+        while not reached_objective:
+            v_filtered = [padding_values] * AMOUNT_ZEROES + v_filtered_original + [padding_values] * AMOUNT_ZEROES
+            v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)
+            last_value = v_fft1[-AMOUNT_ZEROES-1]
+            
+            if abs(last_value) < 0.01:
+                reached_objective = True
+            else:
+                padding_values = -last_value
+                counter += 1
+            if counter > 1:
+                reached_objective = True
+        print(f"Key: {key}, {event_counter} = {last_value}")
         # Replace each line in event_lines with t, x, y, v (where v is the filtered value)
         new_event_lines = []
         
-        # Quizás ni hace falta agregar esto!
         for i in range(AMOUNT_ZEROES):
-            new_event_lines.append(f"0\t0\t0\t{v_fft1[i]}\t0.0\n")
+            new_event_lines.append(f"0.0\t0.0\t0.0\t{v_fft1[i]}\t0.0\n")
         
         for idx, lin in enumerate(event_lines):
             line_values = lin.strip().split('\t')
             t, x, y = line_values[0], line_values[1], line_values[2]
-            v_val = v_fft1[idx+AMOUNT_ZEROES]
-            new_event_lines.append(f"{t}\t{x}\t{y}\t{v_val}\t{v_filtered[idx+AMOUNT_ZEROES]}\n")
-        event_lines = new_event_lines
+            new_event_lines.append(f"{t}\t{x}\t{y}\t{v_fft1[idx+AMOUNT_ZEROES]}\t{v_filtered[idx+AMOUNT_ZEROES]}\n")
         
         for i in range(AMOUNT_ZEROES):
             new_event_lines.append(f"0\t0\t0\t{v_fft1[-AMOUNT_ZEROES+i]}\t0.0\n")
+        
+        event_lines = new_event_lines
         
         if not os.path.exists(folder_name_output):
             os.makedirs(folder_name_output) 
