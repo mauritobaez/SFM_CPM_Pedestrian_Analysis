@@ -11,7 +11,7 @@ for i in FILES_TO_USE:
     keys.append(key)
     
 folder_name = "with_sqrt"  # This is the folder with the sqrt values
-folder_name_output = "only_events_60"  # Output folder for events
+folder_name_output = "only_events_60_fix"  # Output folder for events
 
 pastos = {} 
 pastos['01'] = [[1, 235], [362, 762], [946, 1337], [1532, 1905], [2096, 2521], [2674, 3031], [3095, 3429], [3463, 3820]]
@@ -54,17 +54,19 @@ for key in keys:
         last_value = np.inf
         beg_queue = 0.0
         end_queue = 0.0
-        delta = 0.0005 if event_counter in [3,4,5,6] else -0.0005
-        while abs(last_value) > 0.01 and abs(first_value) > 0.01:
+        delta = 0.001
+        
+        while abs(last_value) > 0.01 or abs(first_value) > 0.01:
             v_filtered = [beg_queue] * AMOUNT_ZEROES + v_filtered_original + [end_queue] * AMOUNT_ZEROES
             v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)            
             first_value = v_fft1[AMOUNT_ZEROES]
             last_value = v_fft1[-AMOUNT_ZEROES-1]
+                        
             if abs(last_value) > 0.01:
-                end_queue += delta
+                end_queue += delta if last_value < 0 else -delta
             if abs(first_value) > 0.01:
-                beg_queue +=delta
-            
+                beg_queue += delta if first_value < 0 else -delta
+                
             
         # Replace each line in event_lines with t, x, y, v (where v is the filtered value)
         new_event_lines = []
@@ -88,3 +90,4 @@ for key in keys:
         with open(f"{folder_name_output}/ped_{key}_event_{event_counter}.txt", "w") as out_file:
             out_file.writelines(event_lines)
 
+    print(f'Finished key {key}')
