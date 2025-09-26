@@ -6,14 +6,14 @@ from scipy.optimize import curve_fit
 
 
 # Quizás cambiar el 1.3
-def acceleration(parameter):
-    def acc(t, tau):
-        return parameter * (1 - np.exp(-t / tau))
+def acceleration():
+    def acc(t, tau, v_d):
+        return v_d * (1 - np.exp(-t / tau))
     return acc
 
-def decelar(parameter):
+def decelar(v_target, t1):
     def decel(t, tau):
-        return parameter * np.exp(-t / tau)
+        return v_target * np.exp((t1-t) / tau)
     return decel
 
 def get_middles():
@@ -58,15 +58,16 @@ def best_fit(t, v, model=acceleration, model_args=None):
         model_args = []
     # Fit the exponential modeltion to the velocity data
     popt, pcov = curve_fit(model(*model_args), t, v, maxfev=10000)
-    tau_fit = popt[0]
+    #tau_fit = popt[0]
+    #v_fit = popt[1]
         
     # Calcular el Error Cuadrático Medio (ECM) entre los valores ajustados y los reales
     function = model(*model_args)
     errors = []
     for i, curr_t in enumerate(t):
-        v_fit = function(curr_t, tau_fit)
+        v_fit = function(curr_t, *popt)
         errors.append((v_fit - v[i]) ** 2)
         
     ecm = np.mean(errors)
-    return tau_fit, ecm
+    return popt, ecm
     

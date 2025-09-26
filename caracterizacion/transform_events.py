@@ -7,17 +7,17 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
+FILES_TO_USE = [3]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
-folder_name = 'only_events_60'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+folder_name = 'only_events_3'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/sin_nada'  # File with acceleration info
 DEC_NAME = 'both_60'
 ACC = False
 DEC = False
 DOUBLE_LINES = True
-SHOW = False
-SAVE = True
-name = 'both_60'  # Folder to save images
+SHOW = True
+SAVE = False
+name = 'only_3'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -68,6 +68,7 @@ for key in keys:
 
     if ACC:
         taus = pastos[key]['taus']
+        vds = pastos[key]['vds']
     shift = AMOUNT_ZEROES / FPS
     if DEC:
         ped_dec_info = dec_info[key]
@@ -95,9 +96,9 @@ for key in keys:
         
         if ACC:
             tau = taus[i]
-            mid_vel = v[middle]
+            v_d = vds[i]
             ts = t[AMOUNT_ZEROES:middle+1]
-            theoretical_v = mid_vel * (1 - np.exp(-ts / tau))
+            theoretical_v = v_d * (1 - np.exp(-ts / tau))
             fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
         
         if DEC:
@@ -123,7 +124,7 @@ for key in keys:
             tau = event_dec_info['tau']
             v_M = event_dec_info['velocity_at_best_time']
             t_dec = t[int(best_time*60): -AMOUNT_ZEROES-1]
-            theoretical_v_dec = v_M * np.exp(-(t_dec - best_time) / tau)
+            theoretical_v_dec = v_M * np.exp(-(t_dec - best_time) / tau)    # Revisar esto
             #fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='cyan', dash='dash')))
             
             

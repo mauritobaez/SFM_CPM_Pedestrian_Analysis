@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 from data_lib import fft_filter, hampel_filter
 
@@ -49,24 +50,22 @@ for key in keys:
                 
         v_filtered_original = hampel_filter(v, 19, 2)
         
-        padding_values = 0.0
-        reached_objective = False
-        
-        counter = 0
-        # Menos ceros y hacer que llegue hasta el próximo valor por debajo de 0.01
-        while not reached_objective:
-            v_filtered = [padding_values] * AMOUNT_ZEROES + v_filtered_original + [padding_values] * AMOUNT_ZEROES
-            v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)
+        first_value = np.inf
+        last_value = np.inf
+        beg_queue = 0.0
+        end_queue = 0.0
+        delta = 0.0005 if event_counter in [3,4,5,6] else -0.0005
+        while abs(last_value) > 0.01 and abs(first_value) > 0.01:
+            v_filtered = [beg_queue] * AMOUNT_ZEROES + v_filtered_original + [end_queue] * AMOUNT_ZEROES
+            v_fft1 = fft_filter(v_filtered, fs=FPS, highcut=1.0)            
+            first_value = v_fft1[AMOUNT_ZEROES]
             last_value = v_fft1[-AMOUNT_ZEROES-1]
+            if abs(last_value) > 0.01:
+                end_queue += delta
+            if abs(first_value) > 0.01:
+                beg_queue +=delta
             
-            if abs(last_value) < 0.01:
-                reached_objective = True
-            else:
-                padding_values = -last_value
-                counter += 1
-            if counter > 1:
-                reached_objective = True
-        print(f"Key: {key}, {event_counter} = {last_value}")
+            
         # Replace each line in event_lines with t, x, y, v (where v is the filtered value)
         new_event_lines = []
         

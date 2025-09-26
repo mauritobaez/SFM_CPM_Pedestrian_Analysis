@@ -14,23 +14,31 @@ USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
 
-def deceleration(v, curr_end, middle, positions=[]):
-    
-    best_time, best_first_m, best_second_m, best_first_b, best_second_b = double_linear_regression(v, np.arange(len(v))/FPS, middle, curr_end)
+def deceleration(v, curr_end, middle):
+    time = np.arange(len(v))/FPS
+    best_time, best_first_m, best_second_m, best_first_b, best_second_b = double_linear_regression(v, time, middle, curr_end)
 
     start_index = int(best_time*FPS)
-    distance = abs(positions[start_index] - positions[-AMOUNT_ZEROES-1]) 
-    tau = distance / v[start_index]
+
+    t_final = time[-AMOUNT_ZEROES*2-1]   # Revisar esto
+    v_target = v[-AMOUNT_ZEROES-1]
     
-    return {'best_time': best_time, 'best_first_m': best_first_m, 'best_second_m': best_second_m, 'best_first_b': best_first_b, 'best_second_b': best_second_b, 'tau': tau, 'distance': distance, 'velocity_at_best_time': v[start_index]}            
+    t_data = np.arange(start_index, curr_end) / FPS
+    v_data = v[start_index:curr_end]
+    
+    popt, ecm = best_fit(t_data, v_data, model=decelar, model_args=[v_target, t_final])
+    tau = popt[0]
+    
+    vM = decelar(v_target, t_final)(0,tau)  # Estoy consiguiendo la velocidad que queda justo cuando empieza la aceleración
+    
+    return {'best_time': best_time, 'best_first_m': best_first_m, 'best_second_m': best_second_m, 'best_first_b': best_first_b, 'best_second_b': best_second_b, 'tau': tau, 'velocity_at_best_time': vM, 'ecm': ecm}            
 
 def parameters_for_acceleration(i, v, start, middles):
     curr_mid = middles[i]
-    mid_vel = v[curr_mid]
         
     v = v[start:curr_mid+1]
     t = np.arange(len(v)) / FPS
-    return t, v, acceleration, [mid_vel]   
+    return t, v, acceleration, []   
 
 keys = []
 for i in FILES_TO_USE:
@@ -45,21 +53,26 @@ for key in keys:
 
     taus = []
     ecms = []
+    vds = []
     middles = pastos[key]['middles']
     curr_deceleration_info = {}
 
     for i, event in enumerate(events):
         v = event['v']
-        positions = event['y'] if i == 2 or i == 5 else event['x']
         
         if idea == 'deceleration':
             if i+1 in EVENTS:
-                curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - AMOUNT_ZEROES, middle=middles[i], positions=positions)
+                curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - AMOUNT_ZEROES, middle=middles[i])
         elif idea == 'acceleration':
             t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
-            tau_fit, ecm = best_fit(t, v, model=func, model_args=func_args)
-            ecms.append(ecm)
+            popt, ecm = best_fit(t, v, model=func, model_args=func_args)
+            tau_fit = popt[0]
+            vd_fit = popt[1]
             taus.append(tau_fit)
+            ecms.append(ecm)
+            vds.append(vd_fit)
+        
+        
         
     
     if idea == 'deceleration':
@@ -67,6 +80,7 @@ for key in keys:
     elif idea == 'acceleration':
         pastos[key]['taus'] = taus
         pastos[key]['ecms'] = ecms
+        pastos[key]['vds'] = vds
     
 
 
