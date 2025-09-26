@@ -7,7 +7,7 @@ from lib_analisis import acceleration, best_fit, decelar, get_events, get_middle
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
-folder_name = 'only_events_60'
+folder_name = 'only_events_60_fix'
 output_file = 'dec_60'  # 'pastos_with_taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False

@@ -7,17 +7,17 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [3]  # Use all files from 01 to 14
-EVENTS = [i for i in range(1,9)]  # Events to process
-folder_name = 'only_events_3'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-file_with_acc_info = 'analisis/sin_nada'  # File with acceleration info
+FILES_TO_USE = [8]  # Use all files from 01 to 14
+EVENTS = [5]  # Events to process
+folder_name = 'only_events_60_fix'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+file_with_acc_info = 'analisis/acc_60'  # File with acceleration info
 DEC_NAME = 'both_60'
 ACC = False
 DEC = False
 DOUBLE_LINES = True
 SHOW = True
 SAVE = False
-name = 'only_3'  # Folder to save images
+name = 'both_60_fix'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
