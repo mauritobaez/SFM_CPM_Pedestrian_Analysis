@@ -3,7 +3,7 @@
 import json
 import numpy as np
 
-with open('analisis/dec.json', 'r') as f:
+with open('analisis/dec_60.json', 'r') as f:
     data = json.load(f)
 deceleration_info = data['deceleration_info']
 
@@ -31,6 +31,6 @@ for ped_id, ped_data in deceleration_info.items():
     }
 
 
-with open('analisis/dec.json', 'w') as f:
+with open('analisis/dec_60.json', 'w') as f:
     json.dump(data, f, indent=4)
 

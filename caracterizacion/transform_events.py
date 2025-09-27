@@ -7,16 +7,18 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [8]  # Use all files from 01 to 14
-EVENTS = [5]  # Events to process
+FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
+EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_fix'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/acc_60'  # File with acceleration info
-DEC_NAME = 'both_60'
+DEC_NAME = 'analisis/dec_60'
+WITH_NOTHING_TOO = True
 ACC = False
 DEC = False
 DOUBLE_LINES = True
-SHOW = True
-SAVE = False
+DEC_EXP = True
+SHOW = False
+SAVE = True
 name = 'both_60_fix'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
@@ -31,7 +33,7 @@ if ACC:
             raise KeyError("Key 'pastos' not found in pastos.json")
 
 if DEC:
-    with open(f"analisis/{DEC_NAME}.json", "r") as f:
+    with open(f"{DEC_NAME}.json", "r") as f:
         dec_info = json.load(f)["deceleration_info"]
 
 
@@ -87,7 +89,8 @@ for key in keys:
         
         t = np.array(t) - shift
         
-        fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
+        if WITH_NOTHING_TOO:
+            fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
         fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
         
         
@@ -103,7 +106,7 @@ for key in keys:
         
         if DEC:
             event_dec_info = ped_dec_info[f'event_{i+1}']
-            best_time = event_dec_info['best_time'] - AMOUNT_ZEROES / FPS
+            best_time = event_dec_info['best_time']
             best_first_m = event_dec_info['best_first_m']
             best_second_m = event_dec_info['best_second_m']
             best_first_b = event_dec_info['best_first_b']
@@ -115,17 +118,18 @@ for key in keys:
                 second_time = np.array([best_time, t[-AMOUNT_ZEROES-1]])
                 
                 # Add back the shift to the times before calculating y values
-                first_line = best_first_m * (first_time + shift) + best_first_b
-                second_line = best_second_m * (second_time + shift) + best_second_b
+                first_line = best_first_m * (first_time) + best_first_b
+                second_line = best_second_m * (second_time) + best_second_b
                 
                 fig.add_trace(go.Scatter(x=first_time, y=first_line, mode='lines', name='Best Fit 1', line=dict(color='purple', dash='dash')))
                 fig.add_trace(go.Scatter(x=second_time, y=second_line, mode='lines', name='Best Fit 2', line=dict(color='purple', dash='dash')))
             
-            tau = event_dec_info['tau']
-            v_M = event_dec_info['velocity_at_best_time']
-            t_dec = t[int(best_time*60): -AMOUNT_ZEROES-1]
-            theoretical_v_dec = v_M * np.exp(-(t_dec - best_time) / tau)    # Revisar esto
-            #fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='cyan', dash='dash')))
+            if DEC_EXP:
+                tau = event_dec_info['tau']
+                v_M = event_dec_info['velocity_at_best_time']
+                t_dec = t[int(best_time*60) + AMOUNT_ZEROES: -AMOUNT_ZEROES-1]
+                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau)    # Revisar esto
+                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='red', dash='dash')))
             
             
         add_vertical_line(fig, 0, color='black', width=2, showlegend=False)  # Start acceleration
@@ -142,7 +146,7 @@ for key in keys:
             template="plotly_white",
             showlegend=True,
             font=dict(size=20),
-            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-2.5, 14.5]),
+            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-2.5, 8.5]),
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 

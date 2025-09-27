@@ -6,7 +6,7 @@ import numpy as np
 
 
 FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
-FILE = 'acc_raw_60'  # 'pastos_with_taus'
+FILE = 'acc_60'  # 'pastos_with_taus'
 
 keys = []
 for i in FILES_TO_USE:
