@@ -11,7 +11,7 @@ for i in FILES_TO_USE:
     keys.append(key)
     
 folder_name = "with_sqrt"  # This is the folder with the sqrt values
-folder_name_output = "only_events_60_fix"  # Output folder for events
+folder_name_output = "only_events_60_fix_over"  # Output folder for events
 
 pastos = {} 
 pastos['01'] = [[1, 235], [362, 762], [946, 1337], [1532, 1905], [2096, 2521], [2674, 3031], [3095, 3429], [3463, 3820]]
@@ -62,7 +62,7 @@ for key in keys:
             first_value = v_fft1[AMOUNT_ZEROES]
             last_value = v_fft1[-AMOUNT_ZEROES-1]
                         
-            if abs(last_value) > 0.01:
+            if last_value > 0.01 or last_value < 0:
                 end_queue += delta if last_value < 0 else -delta
             if abs(first_value) > 0.01:
                 beg_queue += delta if first_value < 0 else -delta
@@ -72,7 +72,7 @@ for key in keys:
         new_event_lines = []
         
         for i in range(AMOUNT_ZEROES):
-            new_event_lines.append(f"0.0\t0.0\t0.0\t{v_fft1[i]}\t0.0\n")
+            new_event_lines.append(f"0.0\t0.0\t0.0\t{v_fft1[i]}\t{v_filtered[i]}\n")
         
         for idx, lin in enumerate(event_lines):
             line_values = lin.strip().split('\t')
@@ -80,7 +80,7 @@ for key in keys:
             new_event_lines.append(f"{t}\t{x}\t{y}\t{v_fft1[idx+AMOUNT_ZEROES]}\t{v_filtered[idx+AMOUNT_ZEROES]}\n")
         
         for i in range(AMOUNT_ZEROES):
-            new_event_lines.append(f"0\t0\t0\t{v_fft1[-AMOUNT_ZEROES+i]}\t0.0\n")
+            new_event_lines.append(f"0\t0\t0\t{v_fft1[-AMOUNT_ZEROES+i]}\t{v_filtered[-AMOUNT_ZEROES+i]}\n")
         
         event_lines = new_event_lines
         

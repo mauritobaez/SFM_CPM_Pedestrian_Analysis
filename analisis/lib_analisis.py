@@ -11,6 +11,11 @@ def acceleration():
         return v_d * (1 - np.exp(-t / tau))
     return acc
 
+def acceleration_with_vd(v_d):
+    def acc(t, tau):
+        return v_d * (1 - np.exp(-t / tau))
+    return acc
+
 def decelar(v_target, t1):
     def decel(t, tau):
         return v_target * np.exp((t1-t) / tau)

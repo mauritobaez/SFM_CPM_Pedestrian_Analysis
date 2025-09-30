@@ -2,14 +2,14 @@ import json
 import numpy as np
 
 from regression import double_linear_regression
-from lib_analisis import acceleration, best_fit, decelar, get_events, get_middles
+from lib_analisis import acceleration, acceleration_with_vd, best_fit, decelar, get_events, get_middles
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
-folder_name = 'only_events_60_fix'
-output_file = 'dec_60'  # 'pastos_with_taus'
-idea = 'deceleration' # 'acceleration' or 'deceleration'
+folder_name = 'only_events_60_v2'
+output_file = 'acc_60'  # 'pastos_with_taus'
+idea = 'acceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
@@ -54,10 +54,11 @@ def deceleration(v, curr_end, middle):
     
 def parameters_for_acceleration(i, v, start, middles):
     curr_mid = middles[i]
-        
-    v = v[start:curr_mid+1]
+    
+    v_d = np.average(v[curr_mid-30:curr_mid+30 + 1])
+    v = v[start:curr_mid + 1]
     t = np.arange(len(v)) / FPS
-    return t, v, acceleration, []   
+    return t, v, acceleration_with_vd, [v_d]   
 
 keys = []
 for i in FILES_TO_USE:
@@ -87,10 +88,10 @@ for key in keys:
             t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
             popt, ecm = best_fit(t, v, model=func, model_args=func_args)
             tau_fit = popt[0]
-            vd_fit = popt[1]
+            #vd_fit = popt[1]
             taus.append(tau_fit)
             ecms.append(ecm)
-            vds.append(vd_fit)
+            vds.append(func_args[0])
         
         
         

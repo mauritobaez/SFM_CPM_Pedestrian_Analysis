@@ -9,17 +9,17 @@ from lib import add_vertical_line, get_middle
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
-folder_name = 'only_events_60_fix'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
+folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/acc_60'  # File with acceleration info
 DEC_NAME = 'analisis/dec_60'
-WITH_NOTHING_TOO = True
+WITH_NOTHING_TOO = False
 ACC = False
-DEC = False
-DOUBLE_LINES = True
+DEC = True
+DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'both_60_fix'  # Folder to save images
+name = 'both_60_v2_dec'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -146,7 +146,7 @@ for key in keys:
             template="plotly_white",
             showlegend=True,
             font=dict(size=20),
-            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-2.5, 8.5]),
+            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[0, t[-AMOUNT_ZEROES-1]]),
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 
