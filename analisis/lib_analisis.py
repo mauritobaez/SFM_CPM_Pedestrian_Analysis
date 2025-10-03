@@ -21,6 +21,14 @@ def decelar(v_target, t1):
         return v_target * np.exp((t1-t) / tau)
     return decel
 
+def basic_decelaration(vM, tau, t):
+    return vM * np.exp(-t / tau)
+
+def decelar_vm_fix(vM):
+    def decel_vm_fix(t, tau):
+        return vM * np.exp(-t / tau)
+    return decel_vm_fix
+
 def get_middles():
     with open(f"analisis/middles.json", "r") as f:
         pastos_data = json.load(f)

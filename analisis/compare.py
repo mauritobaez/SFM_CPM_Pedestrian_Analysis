@@ -2,19 +2,28 @@ import json
 import numpy as np
 
 from regression import double_linear_regression
-from lib_analisis import acceleration, acceleration_with_vd, best_fit, decelar, get_events, get_middles
+from lib_analisis import acceleration, acceleration_with_vd, basic_decelaration, best_fit, decelar, decelar_vm_fix, get_events, get_middles
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'acc_60'  # 'pastos_with_taus'
-idea = 'acceleration' # 'acceleration' or 'deceleration'
+output_file = 'dec_60'  # 'pastos_with_taus'
+idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
 
-def deceleration(v, curr_end, middle):
+
+def deceleartion_following_distance(vel_start, positions, best_time):
+    
+    start_index = int(best_time*FPS)
+    distance = abs(positions[start_index+AMOUNT_ZEROES] - positions[-AMOUNT_ZEROES-1]) 
+    tau = distance / vel_start
+    
+    return {'tau': tau, 'distance': distance, 'velocity_at_best_time': vel_start}
+
+def deceleration(v, curr_end, middle, positions):
     # Ignore the padded zeros
     v_data_full = v[AMOUNT_ZEROES : -AMOUNT_ZEROES]
     time = np.arange(len(v_data_full)) / FPS   # reset time axis starting at 0
@@ -25,20 +34,38 @@ def deceleration(v, curr_end, middle):
     start_index = int(best_time * FPS)
 
     # Final time and velocity (end of braking, before padding)
-    t_final = time[-1]
+    #t_final = time[-1]
     v_target = v_data_full[-1] if v_data_full[-1] > 0 else 0.003
 
     # Slice out the deceleration interval
-    t_data = time[start_index:]
     v_data = v_data_full[start_index:]
+    t_data = np.arange(len(v_data)) / FPS  # reset time axis starting at 0
+    t_final = t_data[-1]
 
     # Fit exponential model (anchored at endpoint)
     popt, ecm = best_fit(t_data, v_data, model=decelar, model_args=[v_target, t_final])
     tau = popt[0]
 
     # Initial condition: velocity at start of braking (theoretical)
-    t0 = time[start_index]
+    t0 = t_data[0]
     vM = decelar(v_target, t_final)(t0, tau)
+
+    # Otro método más pedorro
+    dec_follow_distance = deceleartion_following_distance(v_data[0], positions, best_time)
+    errors = []
+    vel_fl_dist = dec_follow_distance['velocity_at_best_time']
+    tau_fl_dist = dec_follow_distance['tau']
+    for i, curr_t in enumerate(t_data):
+        v_fit = basic_decelaration(vel_fl_dist, tau_fl_dist, curr_t)
+        errors.append((v_fit - v_data[i]) ** 2)
+        
+    ecm_follow_distance = np.mean(errors)
+
+
+    # Otro método ajustando ambos parámetros
+    popt_vm_fix, ecm_vm_fix = best_fit(t_data, v_data, model=decelar_vm_fix, model_args=[v_data[0]])
+    tau_vm_fix = popt_vm_fix[0]
+
 
     return {
         'best_time': best_time,
@@ -48,7 +75,14 @@ def deceleration(v, curr_end, middle):
         'best_second_b': best_second_b,
         'tau': tau,
         'velocity_at_best_time': vM,
-        'ecm': ecm
+        'ecm': ecm,
+        'tau_following_distance': dec_follow_distance['tau'],
+        'distance_following_distance': dec_follow_distance['distance'],
+        'velocity_at_best_time_following_distance': dec_follow_distance['velocity_at_best_time'],
+        'ecm_following_distance': ecm_follow_distance,
+        'tau_vm_fix': tau_vm_fix,
+        'vm_vm_fix': v_data[0],
+        'ecm_vm_fix': ecm_vm_fix
     }
     
     
@@ -82,7 +116,8 @@ for key in keys:
         
         if idea == 'deceleration':
             if i+1 in EVENTS:
-                curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES)
+                positions = event['y'] if i == 2 or i == 5 else event['x']
+                curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES, positions=positions)
 
         elif idea == 'acceleration':
             t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)

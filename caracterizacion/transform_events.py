@@ -19,7 +19,7 @@ DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'both_60_v2_dec'  # Folder to save images
+name = 'both_60_v3_dec_all'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -127,11 +127,21 @@ for key in keys:
             if DEC_EXP:
                 tau = event_dec_info['tau']
                 v_M = event_dec_info['velocity_at_best_time']
-                t_dec = t[int(best_time*60) + AMOUNT_ZEROES: -AMOUNT_ZEROES-1]
-                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau)    # Revisar esto
-                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration Velocity', line=dict(color='red', dash='dash')))
+                t_dec = t[int(best_time*60) + AMOUNT_ZEROES: -AMOUNT_ZEROES]
+                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau)
+                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration', line=dict(color='red', dash='dash')))
             
+                tau_follow = event_dec_info['tau_following_distance']
+                velocity_at_best_time_follow = event_dec_info['velocity_at_best_time_following_distance']
+                theoretical_v_dec_follow = velocity_at_best_time_follow * np.exp(-(t_dec-best_time) / tau_follow)
+                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_follow, mode='lines', name='Theoretical Deceleration (Distance)', line=dict(color='brown', dash='dot')))
             
+                tau_vm_fix = event_dec_info['tau_vm_fix']
+                vm_vm_fix = event_dec_info['vm_vm_fix']
+                theoretical_v_dec_vm_fix = vm_vm_fix * np.exp(-(t_dec-best_time) / tau_vm_fix)
+                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_vm_fix, mode='lines', name='Theoretical Deceleration (Vm set)', line=dict(color='black', dash='dashdot')))
+                
+                
         add_vertical_line(fig, 0, color='black', width=2, showlegend=False)  # Start acceleration
         add_vertical_line(fig, t[-AMOUNT_ZEROES-1], color='black', width=2, showlegend=False) # End deceleration       
     

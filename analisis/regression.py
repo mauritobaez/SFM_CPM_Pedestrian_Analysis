@@ -29,8 +29,8 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
             if first_m != second_m:
                 # At intersection: first_m * t + first_b = second_m * t + second_b
                 # (first_m - second_m) * t = second_b - first_b
-                best_time = (second_b - first_b) / (first_m - second_m)
-                if best_time < time[index_start] or best_time > time[index_end]:
+                curr_best_time = (second_b - first_b) / (first_m - second_m)
+                if curr_best_time < time[index_start] or curr_best_time > time[index_end]:
                     continue
             else:
                 print(f"Warning: Lines are parallel at indices {index_start} and {index_end}, using index {i} as fallback.")
@@ -40,6 +40,7 @@ def double_linear_regression(complete_velocities, time, index_start, index_end):
             best_first_b = first_b
             best_second_b = second_b
             best_error = first_error + second_error
+            best_time = curr_best_time
     
     return best_time, best_first_m, best_second_m, best_first_b, best_second_b
 
