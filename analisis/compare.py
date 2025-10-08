@@ -2,17 +2,18 @@ import json
 import numpy as np
 
 from regression import double_linear_regression
-from lib_analisis import acceleration, acceleration_with_vd, basic_decelaration, best_fit, decelar, decelar_vm_fix, get_events, get_middles
+from lib_analisis import acceleration, acceleration_with_vd, basic_decelaration, best_fit, decelar, decelar_both, decelar_vm_fix, double_acceleration, get_events, get_middles
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'dec_60'  # 'pastos_with_taus'
+output_file = 'dec_60_both'  # 'pastos_with_taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
+ECM_THRESHOLD = 0.024
 
 
 def deceleartion_following_distance(vel_start, positions, best_time):
@@ -67,6 +68,11 @@ def deceleration(v, curr_end, middle, positions):
     tau_vm_fix = popt_vm_fix[0]
 
 
+    # Método Both
+    popt_both, ecm_both = best_fit(t_data, v_data, model=decelar_both, model_args=[])
+    tau_both = popt_both[0]
+    vM_both = popt_both[1]
+
     return {
         'best_time': best_time,
         'best_first_m': best_first_m,
@@ -82,14 +88,17 @@ def deceleration(v, curr_end, middle, positions):
         'ecm_following_distance': ecm_follow_distance,
         'tau_vm_fix': tau_vm_fix,
         'vm_vm_fix': v_data[0],
-        'ecm_vm_fix': ecm_vm_fix
+        'ecm_vm_fix': ecm_vm_fix,
+        'tau_both': tau_both,
+        'vm_both': vM_both,
+        'ecm_both': ecm_both
     }
     
     
 def parameters_for_acceleration(i, v, start, middles):
     curr_mid = middles[i]
     
-    v_d = np.average(v[curr_mid-30:curr_mid+30 + 1])
+    v_d = np.average(v[curr_mid-60:curr_mid + 1])
     v = v[start:curr_mid + 1]
     t = np.arange(len(v)) / FPS
     return t, v, acceleration_with_vd, [v_d]   
@@ -108,6 +117,7 @@ for key in keys:
     taus = []
     ecms = []
     vds = []
+    doubles = {}
     middles = pastos[key]['middles']
     curr_deceleration_info = {}
 
@@ -124,6 +134,18 @@ for key in keys:
             popt, ecm = best_fit(t, v, model=func, model_args=func_args)
             tau_fit = popt[0]
             #vd_fit = popt[1]
+            # t y v ya fueron trimeados en parameters_for_acceleration
+            if ecm > ECM_THRESHOLD:
+                best_index, first_tau, second_tau, first_vd, second_vd, best_error = double_acceleration(t, v, 0, len(v)-1)
+                doubles[f'event_{i+1}'] = {
+                    'best_index': best_index,
+                    'first_tau': first_tau,
+                    'second_tau': second_tau,
+                    'first_vd': first_vd,
+                    'second_vd': second_vd,
+                    'best_error': best_error
+                }
+                
             taus.append(tau_fit)
             ecms.append(ecm)
             vds.append(func_args[0])
@@ -137,7 +159,7 @@ for key in keys:
         pastos[key]['taus'] = taus
         pastos[key]['ecms'] = ecms
         pastos[key]['vds'] = vds
-    
+        pastos[key]['doubles'] = doubles
 
 
 if idea == 'acceleration':

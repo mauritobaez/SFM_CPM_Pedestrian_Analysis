@@ -7,19 +7,19 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
-EVENTS = [i for i in range(1,9)]  # Events to process
+FILES_TO_USE = [6]  # Use all files from 01 to 14
+EVENTS = [3]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/acc_60'  # File with acceleration info
-DEC_NAME = 'analisis/dec_60'
+DEC_NAME = 'analisis/dec_60_both'
 WITH_NOTHING_TOO = False
 ACC = False
 DEC = True
 DOUBLE_LINES = False
 DEC_EXP = True
-SHOW = False
-SAVE = True
-name = 'both_60_v3_dec_all'  # Folder to save images
+SHOW = True
+SAVE = False
+name = 'only_events_60_v3_dec_all'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -45,6 +45,8 @@ for i in FILES_TO_USE:
 for key in keys:
     events = []
     for event_number in range(1, 9):
+        if ACC and event_number == 1 and (key == '01' or key == '09'):
+            continue  # Skip pedestrian 01 event 1 due to data issues
         t = []
         x = []
         y = []
@@ -141,6 +143,11 @@ for key in keys:
                 theoretical_v_dec_vm_fix = vm_vm_fix * np.exp(-(t_dec-best_time) / tau_vm_fix)
                 fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_vm_fix, mode='lines', name='Theoretical Deceleration (Vm set)', line=dict(color='black', dash='dashdot')))
                 
+                tau_both = event_dec_info['tau_both']
+                vm_both = event_dec_info['vm_both']
+                theoretical_v_dec_both = vm_both * np.exp(-(t_dec-best_time) / tau_both)
+                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_both, mode='lines', name='Theoretical Deceleration (Both)', line=dict(color='grey', dash='longdash')))
+                
                 
         add_vertical_line(fig, 0, color='black', width=2, showlegend=False)  # Start acceleration
         add_vertical_line(fig, t[-AMOUNT_ZEROES-1], color='black', width=2, showlegend=False) # End deceleration       
@@ -156,7 +163,7 @@ for key in keys:
             template="plotly_white",
             showlegend=True,
             font=dict(size=20),
-            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[0, t[-AMOUNT_ZEROES-1]]),
+            xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[0 if not DEC else t[middle], t[-AMOUNT_ZEROES-1]]),
             yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18), range=[-0.3, 2]),
         )
 

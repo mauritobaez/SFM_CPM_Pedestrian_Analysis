@@ -16,6 +16,11 @@ def acceleration_with_vd(v_d):
         return v_d * (1 - np.exp(-t / tau))
     return acc
 
+def acceleration_with_start_v(v_start):
+    def acc(t, tau, v_d):
+        return v_start + (v_d - v_start) * (1 - np.exp(-t / tau))
+    return acc
+
 def decelar(v_target, t1):
     def decel(t, tau):
         return v_target * np.exp((t1-t) / tau)
@@ -28,6 +33,11 @@ def decelar_vm_fix(vM):
     def decel_vm_fix(t, tau):
         return vM * np.exp(-t / tau)
     return decel_vm_fix
+
+def decelar_both():
+    def decel_both(t, tau, vM):
+        return vM * np.exp(-t / tau)
+    return decel_both
 
 def get_middles():
     with open(f"analisis/middles.json", "r") as f:
@@ -84,3 +94,24 @@ def best_fit(t, v, model=acceleration, model_args=None):
     ecm = np.mean(errors)
     return popt, ecm
     
+def double_acceleration(t, v, index_start, index_end):
+    best_index = -1
+    best_error = float('inf')
+    best_first_vd = None
+    best_second_vd = None
+    best_first_tau = None
+    best_second_tau = None
+    for i in range(index_start, index_end+1):
+        if abs(i - index_start) < 2 or abs(index_end - i) < 2:
+            continue
+        popt_1, ecm_1 = best_fit(t[index_start: index_start+i+1], v[index_start: index_start+i+1], acceleration, [])
+        popt_2, ecm_2 = best_fit(t[index_start+i: index_end+1], v[index_start+i: index_end+1], acceleration_with_start_v, [v[index_start+i]])
+        if ecm_1 + ecm_2 < best_error:
+            best_index = i
+            best_first_vd = popt_1[1]
+            best_second_vd = popt_2[1]
+            best_first_tau = popt_1[0]
+            best_second_tau = popt_2[0]
+            best_error = ecm_1 + ecm_2
+    
+    return best_index, best_first_tau, best_second_tau, best_first_vd, best_second_vd, best_error
