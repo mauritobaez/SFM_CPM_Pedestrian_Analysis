@@ -7,19 +7,19 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [6]  # Use all files from 01 to 14
-EVENTS = [3]  # Events to process
+FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
+EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/acc_60'  # File with acceleration info
-DEC_NAME = 'analisis/dec_60_both'
+DEC_NAME = 'analisis/dec_60'
 WITH_NOTHING_TOO = False
-ACC = False
-DEC = True
+ACC = True
+DEC = False
 DOUBLE_LINES = False
 DEC_EXP = True
-SHOW = True
-SAVE = False
-name = 'only_events_60_v3_dec_all'  # Folder to save images
+SHOW = False
+SAVE = True
+name = 'only_events_60_v4_acc_double'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -45,8 +45,6 @@ for i in FILES_TO_USE:
 for key in keys:
     events = []
     for event_number in range(1, 9):
-        if ACC and event_number == 1 and (key == '01' or key == '09'):
-            continue  # Skip pedestrian 01 event 1 due to data issues
         t = []
         x = []
         y = []
@@ -73,12 +71,14 @@ for key in keys:
     if ACC:
         taus = pastos[key]['taus']
         vds = pastos[key]['vds']
+        doubles = pastos[key].get('doubles', {})
     shift = AMOUNT_ZEROES / FPS
     if DEC:
         ped_dec_info = dec_info[key]
     
     for i, event in enumerate(events):
-        
+        if ACC and i+1 == 1 and (key == '01' or key == '09'):
+            continue  # Skip pedestrian 01 event 1 due to data issues
         if i+1 not in EVENTS:
             continue
         
@@ -105,6 +105,22 @@ for key in keys:
             ts = t[AMOUNT_ZEROES:middle+1]
             theoretical_v = v_d * (1 - np.exp(-ts / tau))
             fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
+            if f'event_{i+1}' in doubles:
+                double_info = doubles[f'event_{i+1}']
+                best_index = double_info['best_index']
+                first_tau = double_info['first_tau']
+                second_tau = double_info['second_tau']
+                first_vd = double_info['first_vd']
+                second_vd = double_info['second_vd']
+                
+                t_first = t[AMOUNT_ZEROES: AMOUNT_ZEROES + best_index +1]
+                t_second = t[AMOUNT_ZEROES + best_index: middle +1]
+                
+                theoretical_v_first = first_vd * (1 - np.exp(-t_first / first_tau))
+                theoretical_v_second = v[best_index + AMOUNT_ZEROES] + (second_vd - v[best_index + AMOUNT_ZEROES]) * (1 - np.exp(-(t_second - t_second[0]) / second_tau))
+                
+                fig.add_trace(go.Scatter(x=t_first, y=theoretical_v_first, mode='lines', name='Theoretical Velocity 1', line=dict(color='purple', dash='dash')))
+                fig.add_trace(go.Scatter(x=t_second, y=theoretical_v_second, mode='lines', name='Theoretical Velocity 2', line=dict(color='brown', dash='dash')))
         
         if DEC:
             event_dec_info = ped_dec_info[f'event_{i+1}']
@@ -170,7 +186,7 @@ for key in keys:
         if SHOW:
             fig.show()
 
-        if SAVE:
+        if SAVE and f'event_{i+1}' in doubles:
             if not os.path.exists(f"./{name}"):
                 os.makedirs(f"./{name}")
             fig.write_image(

@@ -24,6 +24,11 @@ fig.add_trace(go.Histogram(
     marker_color='blue'
 ))
 
+# Vertical line at ECM = 0.018
+fig.add_vline(x=0.018, line_width=3, line_dash="dash", line_color="red",
+              annotation_text="ECM = 0.018", annotation_position="top right",
+                annotation_font_size=16, annotation_font_color="red")
+
 # Update layout
 fig.update_layout(
     title="Distribution of ECM Values",
@@ -35,6 +40,8 @@ fig.update_layout(
     xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
     yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
 )
+
+
 
 # Show the plot
 fig.show()
