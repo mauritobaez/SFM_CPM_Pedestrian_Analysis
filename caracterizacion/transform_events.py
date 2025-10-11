@@ -13,13 +13,13 @@ folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros'] 
 file_with_acc_info = 'analisis/acc_60'  # File with acceleration info
 DEC_NAME = 'analisis/dec_60'
 WITH_NOTHING_TOO = False
-ACC = True
-DEC = False
+ACC = False
+DEC = True
 DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_60_v4_acc_double'  # Folder to save images
+name = 'only_events_60_v4_dec_all'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -93,7 +93,7 @@ for key in keys:
         
         if WITH_NOTHING_TOO:
             fig.add_trace(go.Scatter(x=t, y=v_with_nothing, mode='lines', name='Raw Velocity', line=dict(color='red'), opacity=0.5))
-        fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7))
+        fig.add_trace(go.Scatter(x=t, y=v, mode='lines', name='FFT Filtered Velocity 1.0', line=dict(color='orange'), opacity=0.7, line_width=3))
         
         
         middle = get_middle(y if i == 2 or i == 5 else x, AMOUNT_ZEROES)
@@ -186,7 +186,7 @@ for key in keys:
         if SHOW:
             fig.show()
 
-        if SAVE and f'event_{i+1}' in doubles:
+        if SAVE:
             if not os.path.exists(f"./{name}"):
                 os.makedirs(f"./{name}")
             fig.write_image(

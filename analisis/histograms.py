@@ -20,8 +20,10 @@ fig = go.Figure()
 #    x=ecm_values,
 #    name='ECM Distribution',
 #    opacity=0.75,
-#    nbinsx=50,  # You can adjust the number of bins
-#    marker_color='blue'
+#    nbinsx=100,  # You can adjust the number of bins
+#    marker_color='blue',
+#    marker_line_color='black',
+#    marker_line_width=1
 #))
 
 # Vertical line at ECM = 0.018
@@ -45,15 +47,18 @@ fig.update_layout(
 ecm_sorted = np.sort(ecm_values)
 ccpdf = 1.0 - np.arange(1, len(ecm_sorted) + 1) / len(ecm_sorted)
 
-# Add CCPDF trace
+# Add CCPDF trace (log-log scale)
 fig.add_trace(go.Scatter(
     x=ecm_sorted,
     y=ccpdf,
     mode='lines',
-    name='CCPDF',
-    line=dict(color='green', width=3, dash='dash')
+    name='CCPDF (log-log)',
+    line=dict(color='green', width=3, dash='dash'),
 ))
 
+# Set log-log scale for CCPDF
+#fig.update_xaxes(type="log")
+fig.update_yaxes(type="log")
 
 # Show the plot
 fig.show()
