@@ -16,8 +16,8 @@ def acceleration_with_vd(v_d):
         return v_d * (1 - np.exp(-t / tau))
     return acc
 
-def acceleration_with_start_v(v_start):
-    def acc(t, tau, v_d):
+def acceleration_with_start_v(v_d, v_start):
+    def acc(t, tau):
         return v_start + (v_d - v_start) * (1 - np.exp(-t / tau))
     return acc
 
@@ -94,7 +94,7 @@ def best_fit(t, v, model=acceleration, model_args=None):
     ecm = np.mean(errors)
     return popt, ecm
     
-def double_acceleration(t, v, index_start, index_end):
+def double_acceleration(t, v, index_start, index_end, last_vd=None):
     best_index = -1
     best_error = float('inf')
     best_first_vd = None
@@ -104,13 +104,13 @@ def double_acceleration(t, v, index_start, index_end):
     for i in range(index_start, index_end+1):
         if abs(i - index_start) < 2 or abs(index_end - i) < 2:
             continue
-        popt_1, ecm_1 = best_fit(t[index_start: index_start+i+1], v[index_start: index_start+i+1], acceleration, [])
+        popt_1, ecm_1 = best_fit(t[index_start: index_start+i+1], v[index_start: index_start+i+1], acceleration_with_vd, [v[index_start+i]])
         second_v = v[index_start+i: index_end+1]
-        popt_2, ecm_2 = best_fit(np.arange(len(second_v)) / 60, second_v, acceleration_with_start_v, [v[index_start+i]])
+        popt_2, ecm_2 = best_fit(np.arange(len(second_v)) / 60, second_v, acceleration_with_start_v, [last_vd, v[index_start+i]])
         if ecm_1 + ecm_2 < best_error:
             best_index = i
-            best_first_vd = popt_1[1]
-            best_second_vd = popt_2[1]
+            best_first_vd = v[index_start+i]
+            best_second_vd = last_vd
             best_first_tau = popt_1[0]
             best_second_tau = popt_2[0]
             best_error = ecm_1 + ecm_2

@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 # Load the data from acc_60.json
-name = 'analisis/acc_60_15'
+name = 'analisis/acc_60_09'
 with open(f'{name}.json', 'r') as f:
     data = json.load(f)
 
@@ -39,7 +39,7 @@ fig.add_trace(go.Histogram(
     x=ecm_double_values,
     name='ECM Distribution (Double)',
     opacity=0.75,
-    nbinsx=10,  # You can adjust the number of bins
+    nbinsx=20,  # You can adjust the number of bins
     marker_color='red',
     marker_line_color='black',
     marker_line_width=1
@@ -49,8 +49,8 @@ fig.update_layout(barmode='overlay')
 
 
 # Vertical line at ECM = 0.018
-fig.add_vline(x=0.015, line_width=3, line_dash="dash", line_color="red",
-              annotation_text="ECM = 0.015", annotation_position="top right",
+fig.add_vline(x=0.009, line_width=3, line_dash="dash", line_color="red",
+              annotation_text="ECM = 0.009", annotation_position="top right",
                 annotation_font_size=16, annotation_font_color="red")
 
 # Calculate averages
