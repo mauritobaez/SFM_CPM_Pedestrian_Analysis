@@ -8,12 +8,12 @@ from lib_analisis import acceleration, acceleration_with_vd, basic_decelaration,
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'acc_60'  # 'pastos_with_taus'
+output_file = 'acc_60_15'  # 'pastos_with_taus'
 idea = 'acceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
-ECM_THRESHOLD = 0.018
+ECM_THRESHOLD = 0.015
 
 
 def deceleartion_following_distance(vel_start, positions, best_time):
