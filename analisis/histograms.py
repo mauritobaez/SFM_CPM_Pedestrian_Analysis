@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 # Load the data from acc_60.json
-name = 'analisis/acc_60_09'
+name = 'analisis/acc_60_04'
 with open(f'{name}.json', 'r') as f:
     data = json.load(f)
 
@@ -27,7 +27,7 @@ fig = go.Figure()
 fig.add_trace(go.Histogram(
     x=ecm_values,
     name='ECM Distribution',
-    opacity=0.75,
+    opacity=0.55,
     nbinsx=100,  # You can adjust the number of bins
     marker_color='blue',
     marker_line_color='black',
@@ -38,8 +38,8 @@ fig.add_trace(go.Histogram(
 fig.add_trace(go.Histogram(
     x=ecm_double_values,
     name='ECM Distribution (Double)',
-    opacity=0.75,
-    nbinsx=20,  # You can adjust the number of bins
+    opacity=0.55,
+    nbinsx=30,  # You can adjust the number of bins
     marker_color='red',
     marker_line_color='black',
     marker_line_width=1
@@ -49,9 +49,9 @@ fig.update_layout(barmode='overlay')
 
 
 # Vertical line at ECM = 0.018
-fig.add_vline(x=0.009, line_width=3, line_dash="dash", line_color="red",
-              annotation_text="ECM = 0.009", annotation_position="top right",
-                annotation_font_size=16, annotation_font_color="red")
+fig.add_vline(x=0.004, line_width=2, line_dash="dash", line_color="black",
+              annotation_text="ECM THRESHOLD = 0.004", annotation_position="top right",
+                annotation_font_size=16, annotation_font_color="black")
 
 # Calculate averages
 avg_ecm = np.mean(ecm_values)

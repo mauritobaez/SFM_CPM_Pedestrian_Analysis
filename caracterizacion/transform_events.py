@@ -10,7 +10,7 @@ from lib import add_vertical_line, get_middle
 FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-file_with_acc_info = 'analisis/acc_60_09'  # File with acceleration info
+file_with_acc_info = 'analisis/acc_60_04'  # File with acceleration info
 DEC_NAME = 'analisis/dec_60'
 WITH_NOTHING_TOO = False
 ACC = True
@@ -19,7 +19,7 @@ DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_60_v4_acc_09'  # Folder to save images
+name = 'only_events_60_v4_acc'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -100,8 +100,8 @@ for key in keys:
         add_vertical_line(fig, t[middle], color='blue', width=2, showlegend=False)
         
         if ACC:
-            tau = taus[i]
-            v_d = vds[i]
+            tau = taus[i if not (key == '01' or key == '09') else i-1]
+            v_d = vds[i if not (key == '01' or key == '09') else i-1]
             ts = t[AMOUNT_ZEROES:middle+1]
             theoretical_v = v_d * (1 - np.exp(-ts / tau))
             fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
@@ -117,7 +117,8 @@ for key in keys:
                 t_second = t[AMOUNT_ZEROES + best_index: middle +1]
                 
                 theoretical_v_first = first_vd * (1 - np.exp(-t_first / first_tau))
-                theoretical_v_second = v[best_index + AMOUNT_ZEROES] + (second_vd - v[best_index + AMOUNT_ZEROES]) * (1 - np.exp(-(t_second - t_second[0]) / second_tau))
+                start_v_second = theoretical_v_first[-1]
+                theoretical_v_second = start_v_second + (second_vd - start_v_second) * (1 - np.exp(-(t_second - t_second[0]) / second_tau))
                 
                 fig.add_trace(go.Scatter(x=t_first, y=theoretical_v_first, mode='lines', name='Theoretical Velocity 1', line=dict(color='purple', dash='dash')))
                 fig.add_trace(go.Scatter(x=t_second, y=theoretical_v_second, mode='lines', name='Theoretical Velocity 2', line=dict(color='brown', dash='dash')))

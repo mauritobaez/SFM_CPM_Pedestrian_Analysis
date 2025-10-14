@@ -8,12 +8,12 @@ from lib_analisis import acceleration, acceleration_with_vd, basic_decelaration,
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'acc_60_09'  # 'pastos_with_taus'
+output_file = 'acc_60_04'  # 'pastos_with_taus'
 idea = 'acceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
-ECM_THRESHOLD = 0.009
+ECM_THRESHOLD = 0.004
 
 
 def deceleartion_following_distance(vel_start, positions, best_time):
@@ -130,6 +130,8 @@ for key in keys:
                 curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES, positions=positions)
 
         elif idea == 'acceleration':
+            if (key == '09' or key == '01') and i+1 == 1:
+                continue
             t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
             popt, ecm = best_fit(t, v, model=func, model_args=func_args)
             tau_fit = popt[0]

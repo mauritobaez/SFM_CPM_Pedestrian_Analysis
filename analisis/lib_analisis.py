@@ -101,13 +101,17 @@ def double_acceleration(t, v, index_start, index_end, last_vd=None):
     best_second_vd = None
     best_first_tau = None
     best_second_tau = None
+    acc = acceleration()
     for i in range(index_start, index_end+1):
         if abs(i - index_start) < 2 or abs(index_end - i) < 2:
             continue
         popt_1, ecm_1 = best_fit(t[index_start: index_start+i+1], v[index_start: index_start+i+1], acceleration_with_vd, [v[index_start+i]])
         second_v = v[index_start+i: index_end+1]
-        popt_2, ecm_2 = best_fit(np.arange(len(second_v)) / 60, second_v, acceleration_with_start_v, [last_vd, v[index_start+i]])
-        if ecm_1 + ecm_2 < best_error:
+        starting_v = acc(t[index_start+i], popt_1[0], v[index_start+i])
+        if starting_v >= last_vd:
+            continue
+        popt_2, ecm_2 = best_fit(np.arange(len(second_v)) / 60, second_v, acceleration_with_start_v, [last_vd, starting_v])
+        if ecm_1 + ecm_2 < best_error and popt_2[0] < 10:
             best_index = i
             best_first_vd = v[index_start+i]
             best_second_vd = last_vd
