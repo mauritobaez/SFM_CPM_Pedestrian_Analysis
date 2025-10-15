@@ -5,7 +5,7 @@ import numpy as np
 import plotly.graph_objects as go
 
 # Load the data from acc_60.json
-name = 'analisis/acc_60_I2T'
+name = 'analisis/acc_60_I2T_all'
 with open(f'{name}.json', 'r') as f:
     data = json.load(f)
 
@@ -21,8 +21,6 @@ for ped_id, ped_data in data['pastos'].items():
         ecm1 = ecms[event_id-1]
         ecm2 = doubles[f'event_{event_id if ped_id != '01' and ped_id != '09' else event_id+1}']['best_error']
         i2t_value = (ecm1 - ecm2) / ecm1
-        if i2t_value < 0:
-            print(f"Negative i2t for ped {ped_id}, event {event_id}: {i2t_value}")
         i2t.append(i2t_value)
 
     #ecm_values.extend(ped_data['ecms'])
@@ -35,7 +33,6 @@ for ped_id, ped_data in data['pastos'].items():
 # Create histogram
 fig = go.Figure()
 
-print(len([x for x in i2t if x < 0.6]))
 
 #fig.add_trace(go.Histogram(
 #    x=ecm_values,
@@ -54,7 +51,7 @@ fig.add_trace(go.Histogram(
     nbinsx=100,  # You can adjust the number of bins
     marker_color='blue',
     marker_line_color='black',
-    marker_line_width=1
+    marker_line_width=3
 ))
 
 
@@ -72,9 +69,35 @@ fig.update_layout(barmode='overlay')
 
 
 # Vertical line at ECM = 0.018
-#fig.add_vline(x=0.004, line_width=2, line_dash="dash", line_color="black",
-#              annotation_text="ECM THRESHOLD = 0.004", annotation_position="top right",
-#                annotation_font_size=16, annotation_font_color="black")
+fig.add_vline(x=0.5, line_width=2, line_dash="dash", line_color="red",
+              annotation_text="I2T THRESHOLD = 0.5", annotation_position="top right",
+                annotation_font_size=16, annotation_font_color="red")
+
+# Count points lower and higher than 0.5
+count_lower = sum(val < 0.5 for val in i2t)
+count_higher = sum(val > 0.5 for val in i2t)
+
+fig.add_annotation(
+    x=0.3,
+    y=max(fig.data[0].y) * 0.95 if hasattr(fig.data[0], 'y') and fig.data[0].y is not None else 3.5,
+    text=f"< 0.5: {count_lower}",
+    showarrow=False,
+    font=dict(color="black", size=16),
+    bgcolor="white",
+    bordercolor="black",
+    xanchor="right"
+)
+
+fig.add_annotation(
+    x=0.7,
+    y=max(fig.data[0].y) * 0.95 if hasattr(fig.data[0], 'y') and fig.data[0].y is not None else 3.5,
+    text=f"> 0.5: {count_higher}",
+    showarrow=False,
+    font=dict(color="black", size=16),
+    bgcolor="white",
+    bordercolor="black",
+    xanchor="left"
+)
 
 # Calculate averages
 #avg_ecm = np.mean(ecm_values)
@@ -123,16 +146,16 @@ fig.update_layout(barmode='overlay')
 #    )
 
 # Update layout
-#fig.update_layout(
-#    title="Distribution of ECM Values",
-#    xaxis_title="ECM Value",
-#    yaxis_title="Frequency",
-#    template="plotly_white",
-#    showlegend=True,
-#    font=dict(size=20),
-#    xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
-#    yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
-#)
+fig.update_layout(
+    title="Distribution of I2T Values",
+    xaxis_title="I2T Value",
+    yaxis_title="Frequency",
+    template="plotly_white",
+    showlegend=True,
+    font=dict(size=20),
+    xaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
+    yaxis=dict(title_font=dict(size=24), tickfont=dict(size=18)),
+)
 
 # Calculate CCPDF (Complementary Cumulative Probability Distribution Function)
 #ecm_sorted = np.sort(ecm_values)
@@ -152,11 +175,11 @@ fig.update_layout(barmode='overlay')
 #fig.update_yaxes(type="log")
 
 # Show the plot
-fig.show()
+#fig.show()
 
-#fig.write_image(
-#            f"./{name}_histo.png",
-#            width=1920,
-#            height=1080,
-#            scale=2  # Higher scale for better resolution
-#            )
+fig.write_image(
+            f"./{name}_histo.png",
+            width=1920,
+            height=1080,
+            scale=2  # Higher scale for better resolution
+            )

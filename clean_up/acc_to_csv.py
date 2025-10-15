@@ -3,7 +3,7 @@ import csv
 
 
 # Paths
-input_json = 'analisis/acc_60_04.json'
+input_json = 'analisis/acc_60_I2T.json'
 output_all = 'Acel_1_Tau_All.csv'
 output_good_1tau = 'Acel_1_Tau_Good.csv'
 output_good_2tau = 'Acel_2_Tau.csv'

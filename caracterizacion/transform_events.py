@@ -10,7 +10,7 @@ from lib import add_vertical_line, get_middle
 FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-file_with_acc_info = 'analisis/acc_60_04'  # File with acceleration info
+file_with_acc_info = 'analisis/acc_60_I2T'  # File with acceleration info
 DEC_NAME = 'analisis/dec_60'
 WITH_NOTHING_TOO = False
 ACC = True

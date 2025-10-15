@@ -14,6 +14,7 @@ USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
 ECM_THRESHOLD = 0
+i2t_min_threshold = 0.5
 
 
 def deceleartion_following_distance(vel_start, positions, best_time):
@@ -137,8 +138,10 @@ for key in keys:
             tau_fit = popt[0]
             
             # t y v ya fueron trimeados en parameters_for_acceleration
-            if ecm > ECM_THRESHOLD:
-                best_index, first_tau, second_tau, first_vd, second_vd, best_error = double_acceleration(t, v, 0, len(v)-1, last_vd=func_args[0])
+            #if ecm > ECM_THRESHOLD:
+            best_index, first_tau, second_tau, first_vd, second_vd, best_error = double_acceleration(t, v, 0, len(v)-1, last_vd=func_args[0])
+            
+            if (ecm - best_error) / ecm > i2t_min_threshold:
                 doubles[f'event_{i+1}'] = {
                     'best_index': best_index,
                     'first_tau': first_tau,
