@@ -23,9 +23,6 @@ with open(f"analisis/{FILE}.json", "r") as f:
 all_taus = []
 for key in keys:
     curr_taus = data[key]['taus']
-    # El primero y el noveno son medio raros, sus primeros eventos son muy cortos. Ojo con el quinto pedestrian
-    if key == '01' or key == '09':
-        curr_taus = curr_taus[1:]
         
     mean, std = np.mean(curr_taus), np.std(curr_taus)
     data[key]['mean_tau'] = mean

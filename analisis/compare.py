@@ -118,6 +118,7 @@ for key in keys:
     taus = []
     ecms = []
     vds = []
+    i2ts = []
     doubles = {}
     middles = pastos[key]['middles']
     curr_deceleration_info = {}
@@ -140,8 +141,8 @@ for key in keys:
             # t y v ya fueron trimeados en parameters_for_acceleration
             #if ecm > ECM_THRESHOLD:
             best_index, first_tau, second_tau, first_vd, second_vd, best_error = double_acceleration(t, v, 0, len(v)-1, last_vd=func_args[0])
-            
-            if (ecm - best_error) / ecm > i2t_min_threshold:
+            curr_i2t = (ecm - best_error) / ecm
+            if curr_i2t > i2t_min_threshold:
                 doubles[f'event_{i+1}'] = {
                     'best_index': best_index,
                     'first_tau': first_tau,
@@ -151,6 +152,7 @@ for key in keys:
                     'best_error': best_error
                 }
                 
+            i2ts.append(curr_i2t)
             taus.append(tau_fit)
             ecms.append(ecm)
             vds.append(func_args[0])
@@ -165,6 +167,7 @@ for key in keys:
         pastos[key]['ecms'] = ecms
         pastos[key]['vds'] = vds
         pastos[key]['doubles'] = doubles
+        pastos[key]['i2ts'] = i2ts
 
 
 if idea == 'acceleration':
@@ -172,5 +175,7 @@ if idea == 'acceleration':
         json.dump({'pastos': pastos}, f_out, indent=4)
 elif idea == 'deceleration':
     with open(f"analisis/{output_file}.json", "w") as f_out:
-        json.dump({'deceleration_info': deceleration_info}, f_out, indent=4)   
+        json.dump({'deceleration_info': deceleration_info}, f_out, indent=4)
+        
+
  

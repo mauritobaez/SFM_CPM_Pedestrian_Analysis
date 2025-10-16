@@ -48,7 +48,7 @@ fig.add_trace(go.Histogram(
     x=i2t,
     name='i2t Distribution',
     opacity=0.85,
-    nbinsx=100,  # You can adjust the number of bins
+    nbinsx=10,  # You can adjust the number of bins
     marker_color='blue',
     marker_line_color='black',
     marker_line_width=3
@@ -78,8 +78,8 @@ count_lower = sum(val < 0.5 for val in i2t)
 count_higher = sum(val > 0.5 for val in i2t)
 
 fig.add_annotation(
-    x=0.3,
-    y=max(fig.data[0].y) * 0.95 if hasattr(fig.data[0], 'y') and fig.data[0].y is not None else 3.5,
+    x=0.4,
+    y=max(fig.data[0].y) * 0.95 if hasattr(fig.data[0], 'y') and fig.data[0].y is not None else 20,
     text=f"< 0.5: {count_lower}",
     showarrow=False,
     font=dict(color="black", size=16),
@@ -89,8 +89,8 @@ fig.add_annotation(
 )
 
 fig.add_annotation(
-    x=0.7,
-    y=max(fig.data[0].y) * 0.95 if hasattr(fig.data[0], 'y') and fig.data[0].y is not None else 3.5,
+    x=0.6,
+    y=max(fig.data[0].y) * 0.95 if hasattr(fig.data[0], 'y') and fig.data[0].y is not None else 20,
     text=f"> 0.5: {count_higher}",
     showarrow=False,
     font=dict(color="black", size=16),

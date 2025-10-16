@@ -21,11 +21,12 @@ for ped_id, ped_data in data.get('pastos', {}).items():
     taus = ped_data.get('taus', [])
     ecms = ped_data.get('ecms', [])
     doubles = ped_data.get('doubles', {})
+    i2ts = ped_data.get('i2ts', [])
 
     # All 1 Tau (each event)
-    for i, (tau, ecm) in enumerate(zip(taus, ecms), start=1 if ped_id != '09' and ped_id != '01' else 2):
+    for i, (tau, ecm, i2t) in enumerate(zip(taus, ecms, i2ts), start=1 if ped_id != '09' and ped_id != '01' else 2):
         event_id = f"{ped_id}{i:02}"
-        rows_all.append([event_id, tau, ecm])
+        rows_all.append([event_id, tau, ecm, i2t])
         if f'event_{i}' not in doubles:
             rows_good_1tau.append([event_id, tau, ecm])
 
@@ -38,12 +39,14 @@ for ped_id, ped_data in data.get('pastos', {}).items():
         rows_good_2tau.append([event_id, tau_1, tau_2, ecm])
 
 # Write CSVs
-header = ['id', 'Tau', 'ECM']
+header = ['id', 'Tau', 'ECM', 'I2T']
 
 with open(output_all, 'w', newline='', encoding='utf-8') as f:
     writer = csv.writer(f)
     writer.writerow(header)
     writer.writerows(rows_all)
+
+header = ['id', 'Tau', 'ECM']
 
 with open(output_good_1tau, 'w', newline='', encoding='utf-8') as f:
     writer = csv.writer(f)
