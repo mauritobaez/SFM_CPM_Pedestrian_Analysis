@@ -1,8 +1,7 @@
 import json
 import numpy as np
 
-from regression import double_linear_regression
-from lib_analisis import acceleration, acceleration_with_vd, basic_decelaration, best_fit, decelar, decelar_both, decelar_vm_fix, double_acceleration, get_events, get_middles
+from analisis.lib_analisis import best_fit, deceleration, double_acceleration, get_events, get_middles, parameters_for_acceleration
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
@@ -13,96 +12,9 @@ idea = 'acceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
-ECM_THRESHOLD = 0
 i2t_min_threshold = 0.5
 
 
-def deceleartion_following_distance(vel_start, positions, best_time):
-    
-    start_index = int(best_time*FPS)
-    distance = abs(positions[start_index+AMOUNT_ZEROES] - positions[-AMOUNT_ZEROES-1]) 
-    tau = distance / vel_start
-    
-    return {'tau': tau, 'distance': distance, 'velocity_at_best_time': vel_start}
-
-def deceleration(v, curr_end, middle, positions):
-    # Ignore the padded zeros
-    v_data_full = v[AMOUNT_ZEROES : -AMOUNT_ZEROES]
-    time = np.arange(len(v_data_full)) / FPS   # reset time axis starting at 0
-    
-    # Run your double regression on the valid region
-    best_time, best_first_m, best_second_m, best_first_b, best_second_b = double_linear_regression(v_data_full, time, middle, curr_end)
-
-    start_index = int(best_time * FPS)
-
-    # Final time and velocity (end of braking, before padding)
-    #t_final = time[-1]
-    v_target = v_data_full[-1] if v_data_full[-1] > 0 else 0.003
-
-    # Slice out the deceleration interval
-    v_data = v_data_full[start_index:]
-    t_data = np.arange(len(v_data)) / FPS  # reset time axis starting at 0
-    t_final = t_data[-1]
-
-    # Fit exponential model (anchored at endpoint)
-    popt, ecm = best_fit(t_data, v_data, model=decelar, model_args=[v_target, t_final])
-    tau = popt[0]
-
-    # Initial condition: velocity at start of braking (theoretical)
-    t0 = t_data[0]
-    vM = decelar(v_target, t_final)(t0, tau)
-
-    # Otro método más pedorro
-    dec_follow_distance = deceleartion_following_distance(v_data[0], positions, best_time)
-    errors = []
-    vel_fl_dist = dec_follow_distance['velocity_at_best_time']
-    tau_fl_dist = dec_follow_distance['tau']
-    for i, curr_t in enumerate(t_data):
-        v_fit = basic_decelaration(vel_fl_dist, tau_fl_dist, curr_t)
-        errors.append((v_fit - v_data[i]) ** 2)
-        
-    ecm_follow_distance = np.mean(errors)
-
-
-    # Otro método ajustando ambos parámetros
-    popt_vm_fix, ecm_vm_fix = best_fit(t_data, v_data, model=decelar_vm_fix, model_args=[v_data[0]])
-    tau_vm_fix = popt_vm_fix[0]
-
-
-    # Método Both
-    popt_both, ecm_both = best_fit(t_data, v_data, model=decelar_both, model_args=[])
-    tau_both = popt_both[0]
-    vM_both = popt_both[1]
-
-    return {
-        'best_time': best_time,
-        'best_first_m': best_first_m,
-        'best_second_m': best_second_m,
-        'best_first_b': best_first_b,
-        'best_second_b': best_second_b,
-        'tau': tau,
-        'velocity_at_best_time': vM,
-        'ecm': ecm,
-        'tau_following_distance': dec_follow_distance['tau'],
-        'distance_following_distance': dec_follow_distance['distance'],
-        'velocity_at_best_time_following_distance': dec_follow_distance['velocity_at_best_time'],
-        'ecm_following_distance': ecm_follow_distance,
-        'tau_vm_fix': tau_vm_fix,
-        'vm_vm_fix': v_data[0],
-        'ecm_vm_fix': ecm_vm_fix,
-        'tau_both': tau_both,
-        'vm_both': vM_both,
-        'ecm_both': ecm_both
-    }
-    
-    
-def parameters_for_acceleration(i, v, start, middles):
-    curr_mid = middles[i]
-    
-    v_d = np.average(v[curr_mid-60:curr_mid + 1])
-    v = v[start:curr_mid + 1]
-    t = np.arange(len(v)) / FPS
-    return t, v, acceleration_with_vd, [v_d]   
 
 keys = []
 for i in FILES_TO_USE:
