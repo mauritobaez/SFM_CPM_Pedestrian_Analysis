@@ -9,21 +9,47 @@ FPS = 60
 AMOUNT_ZEROES = 60
 i2t_min_threshold = 0.5
 
-# Quizás cambiar el 1.3
+
+def cpm_acceleration_with_beta(v_d, beta):
+    #curr_r = prev_r + delta_r
+    #curr_r = r_min + delta_r*(t/delta_t)
+    #curr_r = r_min + ((r_max/tau) * delta_t) * (t/delta_t)
+    #curr_r = r_min + (r_max/tau) * t
+    #curr_r = r_min + ((r_max - r_min)/tau) * t
+    def cpm_acc1(t, tau):
+        return v_d * (t/tau)^beta if t < tau else v_d
+    return cpm_acc1
+
+def cpm_acceleration(v_d):
+    def cpm_acc2(t, tau, beta):
+        return v_d * (t/tau)^beta if t < tau else v_d
+    return cpm_acc2
+
+def cpm_deceleration(v_d):
+    def cpm_decel(t, tau, beta):
+        return v_d * (1 - (t/tau)^beta) if t < tau else 0
+    return cpm_decel
+
+def cpm_deceleration_with_beta(v_d, beta):
+    def cpm_decel2(t, tau):
+        return v_d * (1 - (t/tau)^beta) if t < tau else 0
+    return cpm_decel2
+
+
 def acceleration():
     def acc(t, tau, v_d):
         return v_d * (1 - np.exp(-t / tau))
     return acc
 
 def acceleration_with_vd(v_d):
-    def acc(t, tau):
+    def acc2(t, tau):
         return v_d * (1 - np.exp(-t / tau))
-    return acc
+    return acc2
 
 def acceleration_with_start_v(v_d, v_start):
-    def acc(t, tau):
+    def acc3(t, tau):
         return v_start + (v_d - v_start) * (1 - np.exp(-t / tau))
-    return acc
+    return acc3
 
 def decelar(v_target, t1):
     def decel(t, tau):
@@ -135,6 +161,32 @@ def deceleartion_following_distance(vel_start, positions, best_time):
     
     return {'tau': tau, 'distance': distance, 'velocity_at_best_time': vel_start}
 
+def deceleration_cpm(v, curr_end, middle):
+    v_data_full = v[AMOUNT_ZEROES : -AMOUNT_ZEROES]
+    time = np.arange(len(v_data_full)) / FPS
+    
+    best_time, best_first_m, best_second_m, best_first_b, best_second_b = double_linear_regression(v_data_full, time, middle, curr_end)
+
+    start_index = int(best_time * FPS)
+    
+    v_data = v_data_full[start_index:]
+    t_data = np.arange(len(v_data)) / FPS
+    
+    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_with_beta, model_args=[v_data[-1], 0.9])
+    tau = popt[0]
+    
+    return {
+        'best_time': best_time,
+        'best_first_m': best_first_m,
+        'best_second_m': best_second_m,
+        'best_first_b': best_first_b,
+        'best_second_b': best_second_b,
+        'tau': tau,
+        'velocity_at_best_time': v_data[0],
+        'ecm': ecm,
+    }
+    
+
 def deceleration(v, curr_end, middle, positions):
     # Ignore the padded zeros
     v_data_full = v[AMOUNT_ZEROES : -AMOUNT_ZEROES]
@@ -213,3 +265,11 @@ def parameters_for_acceleration(i, v, start, middles):
     v = v[start:curr_mid + 1]
     t = np.arange(len(v)) / FPS
     return t, v, acceleration_with_vd, [v_d]
+
+def cpm_parameters_for_acceleration(i, v, start, middles):
+    curr_mid = middles[i]
+    
+    v_d = np.average(v[curr_mid-60:curr_mid + 1])
+    v = v[start:curr_mid + 1]
+    t = np.arange(len(v)) / FPS
+    return t, v, cpm_acceleration_with_beta, [v_d, 0.9]

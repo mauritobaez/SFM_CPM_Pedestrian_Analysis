@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-from analisis.lib_analisis import best_fit, deceleration, double_acceleration, get_events, get_middles, parameters_for_acceleration
+from analisis.lib_analisis import best_fit, cpm_parameters_for_acceleration, deceleration, deceleration_cpm, double_acceleration, get_events, get_middles, parameters_for_acceleration
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
@@ -13,6 +13,7 @@ USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
 i2t_min_threshold = 0.5
+model = 'CPM'  # 'CPM' or 'SFM'
 
 
 
@@ -39,35 +40,47 @@ for key in keys:
         v = event['v']
         
         if idea == 'deceleration':
-            if i+1 in EVENTS:
+            if model == 'CPM':
+                curr_deceleration_info[f'event_{i+1}'] = deceleration_cpm(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES)
+            else:
                 positions = event['y'] if i == 2 or i == 5 else event['x']
                 curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES, positions=positions)
 
         elif idea == 'acceleration':
             if (key == '09' or key == '01') and i+1 == 1:
                 continue
-            t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
-            popt, ecm = best_fit(t, v, model=func, model_args=func_args)
-            tau_fit = popt[0]
             
-            # t y v ya fueron trimeados en parameters_for_acceleration
-            #if ecm > ECM_THRESHOLD:
-            best_index, first_tau, second_tau, first_vd, second_vd, best_error = double_acceleration(t, v, 0, len(v)-1, last_vd=func_args[0])
-            curr_i2t = (ecm - best_error) / ecm
-            if curr_i2t > i2t_min_threshold:
-                doubles[f'event_{i+1}'] = {
-                    'best_index': best_index,
-                    'first_tau': first_tau,
-                    'second_tau': second_tau,
-                    'first_vd': first_vd,
-                    'second_vd': second_vd,
-                    'best_error': best_error
-                }
+            if model == 'CPM':
+                t, v, func, func_args = cpm_parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
+                popt, ecm = best_fit(t, v, model=func, model_args=func_args)
                 
-            i2ts.append(curr_i2t)
-            taus.append(tau_fit)
-            ecms.append(ecm)
-            vds.append(func_args[0])
+                taus.append(tau_fit)
+                ecms.append(ecm)
+                vds.append(func_args[0])
+                
+            else:
+                t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
+                popt, ecm = best_fit(t, v, model=func, model_args=func_args)
+                tau_fit = popt[0]
+                
+                # t y v ya fueron trimeados en parameters_for_acceleration
+                #if ecm > ECM_THRESHOLD:
+                best_index, first_tau, second_tau, first_vd, second_vd, best_error = double_acceleration(t, v, 0, len(v)-1, last_vd=func_args[0])
+                curr_i2t = (ecm - best_error) / ecm
+                if curr_i2t > i2t_min_threshold:
+                    doubles[f'event_{i+1}'] = {
+                        'best_index': best_index,
+                        'first_tau': first_tau,
+                        'second_tau': second_tau,
+                        'first_vd': first_vd,
+                        'second_vd': second_vd,
+                        'best_error': best_error
+                    }
+                    
+                i2ts.append(curr_i2t)
+                taus.append(tau_fit)
+                ecms.append(ecm)
+                vds.append(func_args[0])
         
         
         
