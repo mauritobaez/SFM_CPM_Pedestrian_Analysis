@@ -1,13 +1,13 @@
 import json
 import numpy as np
 
-from lib_analisis import best_fit, cpm_parameters_for_acceleration, deceleration, deceleration_cpm, double_acceleration, get_events, get_middles, parameters_for_acceleration
+from lib_analisis import best_fit, cpm_parameters_for_acceleration, cpm_parameters_for_acceleration_both, deceleration, deceleration_cpm, double_acceleration, get_events, get_middles, parameters_for_acceleration
 
 
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'dec_CPM_beta'  # 'pastos_with_taus'
+output_file = 'dec_CPM_both'  # 'pastos_with_taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
@@ -33,6 +33,7 @@ for key in keys:
     vds = []
     i2ts = []
     doubles = {}
+    betas = []
     middles = pastos[key]['middles']
     curr_deceleration_info = {}
 
@@ -51,13 +52,14 @@ for key in keys:
                 continue
             
             if model == 'CPM':
-                t, v, func, func_args = cpm_parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
+                t, v, func, func_args = cpm_parameters_for_acceleration_both(i, v, AMOUNT_ZEROES, middles)
                 popt, ecm = best_fit(t, v, model=func, model_args=func_args)
                 tau_fit = popt[0]
                 
                 taus.append(tau_fit)
                 ecms.append(ecm)
                 vds.append(func_args[0])
+                betas.append(popt[1])
                 
             else:
                 t, v, func, func_args = parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
@@ -94,6 +96,8 @@ for key in keys:
         pastos[key]['vds'] = vds
         pastos[key]['doubles'] = doubles
         pastos[key]['i2ts'] = i2ts
+        if model == 'CPM':
+            pastos[key]['betas'] = betas
 
 
 if idea == 'acceleration':

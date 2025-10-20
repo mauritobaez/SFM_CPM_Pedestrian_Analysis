@@ -7,20 +7,20 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
+FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-file_with_acc_info = 'analisis/acc_CPM_beta'  # File with acceleration info
-DEC_NAME = 'analisis/dec_60'
+file_with_acc_info = 'analisis/dec_CPM_beta_fix'  # File with acceleration info
+DEC_NAME = 'analisis/dec_CPM_both'
 WITH_NOTHING_TOO = False
-ACC = True
-DEC = False
+ACC = False
+DEC = True
 MODEL = 'CPM'  # 'SFM' or 'CPM'
 DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_CPM_v4_acc'  # Folder to save images
+name = 'only_events_CPM_v4_dec_both'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -73,6 +73,7 @@ for key in keys:
         taus = pastos[key]['taus']
         vds = pastos[key]['vds']
         doubles = pastos[key].get('doubles', {})
+        betas = pastos[key].get('betas', [])
     shift = AMOUNT_ZEROES / FPS
     if DEC:
         ped_dec_info = dec_info[key]
@@ -104,7 +105,8 @@ for key in keys:
             tau = taus[i if not (key == '01' or key == '09') else i-1]
             v_d = vds[i if not (key == '01' or key == '09') else i-1]
             ts = t[AMOUNT_ZEROES:middle+1]
-            theoretical_v = v_d * (1 - np.exp(-ts / tau)) if MODEL == 'SFM' else np.where(ts < tau, v_d * (ts / tau) ** 0.9, v_d)
+            beta = betas[i if not (key == '01' or key == '09') else i-1] if betas else 0.9
+            theoretical_v = v_d * (1 - np.exp(-ts / tau)) if MODEL == 'SFM' else np.where(ts < tau, v_d * (ts / tau) ** beta, v_d)
             fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
             if f'event_{i+1}' in doubles:
                 double_info = doubles[f'event_{i+1}']
@@ -147,24 +149,26 @@ for key in keys:
             if DEC_EXP:
                 tau = event_dec_info['tau']
                 v_M = event_dec_info['velocity_at_best_time']
+                beta = event_dec_info.get('beta', 0.9)
                 t_dec = t[int(best_time*60) + AMOUNT_ZEROES: -AMOUNT_ZEROES]
-                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau) if MODEL == 'SFM' else np.where(t_dec - best_time < tau, v_M * (1 - (t_dec - best_time) / tau)** 0.9, 0)
+                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau) if MODEL == 'SFM' else np.where(t_dec - best_time < tau, v_M * (1 - (t_dec - best_time) / tau)** beta, 0)
                 fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration', line=dict(color='red', dash='dash')))
             
-                tau_follow = event_dec_info['tau_following_distance']
-                velocity_at_best_time_follow = event_dec_info['velocity_at_best_time_following_distance']
-                theoretical_v_dec_follow = velocity_at_best_time_follow * np.exp(-(t_dec-best_time) / tau_follow)
-                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_follow, mode='lines', name='Theoretical Deceleration (Distance)', line=dict(color='brown', dash='dot')))
-            
-                tau_vm_fix = event_dec_info['tau_vm_fix']
-                vm_vm_fix = event_dec_info['vm_vm_fix']
-                theoretical_v_dec_vm_fix = vm_vm_fix * np.exp(-(t_dec-best_time) / tau_vm_fix)
-                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_vm_fix, mode='lines', name='Theoretical Deceleration (Vm set)', line=dict(color='black', dash='dashdot')))
+                if MODEL == 'SFM':
+                    tau_follow = event_dec_info['tau_following_distance']
+                    velocity_at_best_time_follow = event_dec_info['velocity_at_best_time_following_distance']
+                    theoretical_v_dec_follow = velocity_at_best_time_follow * np.exp(-(t_dec-best_time) / tau_follow)
+                    fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_follow, mode='lines', name='Theoretical Deceleration (Distance)', line=dict(color='brown', dash='dot')))
                 
-                tau_both = event_dec_info['tau_both']
-                vm_both = event_dec_info['vm_both']
-                theoretical_v_dec_both = vm_both * np.exp(-(t_dec-best_time) / tau_both)
-                fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_both, mode='lines', name='Theoretical Deceleration (Both)', line=dict(color='grey', dash='longdash')))
+                    tau_vm_fix = event_dec_info['tau_vm_fix']
+                    vm_vm_fix = event_dec_info['vm_vm_fix']
+                    theoretical_v_dec_vm_fix = vm_vm_fix * np.exp(-(t_dec-best_time) / tau_vm_fix)
+                    fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_vm_fix, mode='lines', name='Theoretical Deceleration (Vm set)', line=dict(color='black', dash='dashdot')))
+                    
+                    tau_both = event_dec_info['tau_both']
+                    vm_both = event_dec_info['vm_both']
+                    theoretical_v_dec_both = vm_both * np.exp(-(t_dec-best_time) / tau_both)
+                    fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec_both, mode='lines', name='Theoretical Deceleration (Both)', line=dict(color='grey', dash='longdash')))
                 
                 
         add_vertical_line(fig, 0, color='black', width=2, showlegend=False)  # Start acceleration

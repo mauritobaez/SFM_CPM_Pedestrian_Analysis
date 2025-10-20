@@ -174,7 +174,7 @@ def deceleration_cpm(v, curr_end, middle):
     v_data = v_data_full[start_index:]
     t_data = np.arange(len(v_data)) / FPS
     
-    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_with_beta, model_args=[v_data[0], 0.9])
+    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration, model_args=[v_data[0]])
     tau = popt[0]
     
     return {
@@ -186,6 +186,7 @@ def deceleration_cpm(v, curr_end, middle):
         'tau': tau,
         'velocity_at_best_time': v_data[0],
         'ecm': ecm,
+        'beta': popt[1] if len(popt) > 1 else 0.9
     }
     
 
@@ -275,3 +276,11 @@ def cpm_parameters_for_acceleration(i, v, start, middles):
     v = v[start:curr_mid + 1]
     t = np.arange(len(v)) / FPS
     return t, v, cpm_acceleration_with_beta, [v_d, 0.9]
+
+def cpm_parameters_for_acceleration_both(i, v, start, middles):
+    curr_mid = middles[i]
+    
+    v_d = np.average(v[curr_mid-60:curr_mid + 1])
+    v = v[start:curr_mid + 1]
+    t = np.arange(len(v)) / FPS
+    return t, v, cpm_acceleration, [v_d]
