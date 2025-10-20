@@ -10,16 +10,17 @@ from lib import add_vertical_line, get_middle
 FILES_TO_USE = [i for i in range(1, 15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-file_with_acc_info = 'analisis/acc_60_I2T'  # File with acceleration info
+file_with_acc_info = 'analisis/acc_CPM_beta'  # File with acceleration info
 DEC_NAME = 'analisis/dec_60'
 WITH_NOTHING_TOO = False
 ACC = True
 DEC = False
+MODEL = 'CPM'  # 'SFM' or 'CPM'
 DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_60_v4_acc'  # Folder to save images
+name = 'only_events_CPM_v4_acc'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -103,7 +104,7 @@ for key in keys:
             tau = taus[i if not (key == '01' or key == '09') else i-1]
             v_d = vds[i if not (key == '01' or key == '09') else i-1]
             ts = t[AMOUNT_ZEROES:middle+1]
-            theoretical_v = v_d * (1 - np.exp(-ts / tau))
+            theoretical_v = v_d * (1 - np.exp(-ts / tau)) if MODEL == 'SFM' else np.where(ts < tau, v_d * (ts / tau) ** 0.9, v_d)
             fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
             if f'event_{i+1}' in doubles:
                 double_info = doubles[f'event_{i+1}']
@@ -147,7 +148,7 @@ for key in keys:
                 tau = event_dec_info['tau']
                 v_M = event_dec_info['velocity_at_best_time']
                 t_dec = t[int(best_time*60) + AMOUNT_ZEROES: -AMOUNT_ZEROES]
-                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau)
+                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau) if MODEL == 'SFM' else np.where(t_dec - best_time < tau, v_M * (1 - (t_dec - best_time) / tau)** 0.9, 0)
                 fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration', line=dict(color='red', dash='dash')))
             
                 tau_follow = event_dec_info['tau_following_distance']
