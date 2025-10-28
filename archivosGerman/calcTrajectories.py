@@ -11,8 +11,8 @@ import glob
 from data_lib import append_values_at_position, divide_in_events, fft_filter, five_point_stencil, hampel_filter, moving_average_smoothing
 
 
-inputFolder = './archivosGerman/pedestrianTrajectories/'
-outputFolder = './archivosGerman/only_5ps/'
+inputFolder = './archivosGerman/datos/pedestrianTrajectories/'
+outputFolder = './archivosGerman/only_to_check/'
 import os
 os.makedirs(outputFolder, exist_ok=True)
 
@@ -63,67 +63,13 @@ for i in range(len(inputFile)):
         
     #VX = five_point_stencil(X_smooth, 1/FPS)
     #VY = five_point_stencil(Y_smooth, 1/FPS)
-    VX = five_point_stencil(X, 1/FPS)
-    VY = five_point_stencil(Y, 1/FPS)
+    VX = five_point_stencil(X_smooth, 1/FPS)
+    VY = five_point_stencil(Y_smooth, 1/FPS)
 
     #V_clean = hampel_filter(V, 19, 2)
     VX_clean = hampel_filter(VX, 19, 2)
     VY_clean = hampel_filter(VY, 19, 2)
     
-    #if i+1 == 1:
-    #    VX_clean = append_values_at_position(VX_clean, 30, len(VX_clean) -1)
-    #    VY_clean = append_values_at_position(VY_clean, 30, len(VY_clean) -1)
-    #    
-    #    X_smooth = append_values_at_position(X_smooth, 30, len(X_smooth) -1)
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, len(Y_smooth) -1)
-    #elif i+1 == 2:
-    #    VX_clean = append_values_at_position(VX_clean, 30, 2677)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 2677)
-    #    VX_clean = append_values_at_position(VX_clean, 30, 3042+30)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 3042+30)
-    #    VX_clean = append_values_at_position(VX_clean, 30, 3460+60)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 3460+60)
-    #    
-    #    X_smooth = append_values_at_position(X_smooth, 30, 2677, value=X_smooth[2677])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 2677, value=Y_smooth[2677])
-    #    X_smooth = append_values_at_position(X_smooth, 30, 3042+30, value=X_smooth[3042+30])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 3042+30, value=Y_smooth[3042+30])
-    #    X_smooth = append_values_at_position(X_smooth, 30, 3460+60, value=X_smooth[3460+60])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 3460+60, value=Y_smooth[3460+60])
-    #elif i+1 == 3:
-    #    VX_clean = append_values_at_position(VX_clean, 30, len(VX_clean) -1)
-    #    VY_clean = append_values_at_position(VY_clean, 30, len(VY_clean) -1)
-    #    
-    #    X_smooth = append_values_at_position(X_smooth, 30, len(X_smooth) -1)
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, len(Y_smooth) -1)
-    #elif i+1 == 6:
-    #    VX_clean = append_values_at_position(VX_clean, 30, 467)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 467)
-    #    
-    #    X_smooth = append_values_at_position(X_smooth, 30, 467, value=X_smooth[467])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 467, value=Y_smooth[467])
-    #elif i+1 == 7:
-    #    VX_clean = append_values_at_position(VX_clean, 30, 2472)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 2472)
-    #    VX_clean = append_values_at_position(VX_clean, 30, len(X_smooth) -1)
-    #    VY_clean = append_values_at_position(VY_clean, 30, len(Y_smooth) -1)
-    #    
-    #    X_smooth = append_values_at_position(X_smooth, 30, 2472, value=X_smooth[2472])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 2472, value=Y_smooth[2472])
-    #    X_smooth = append_values_at_position(X_smooth, 30, len(X_smooth) -1)
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, len(Y_smooth) -1)
-    #elif i+1 == 10:
-    #    VX_clean = append_values_at_position(VX_clean, 30, 1356)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 1356)
-    #    
-    #    X_smooth = append_values_at_position(X_smooth, 30, 1356, value=X_smooth[1356])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 1356, value=Y_smooth[1356])
-    #elif i+1 == 13:
-    #    VX_clean = append_values_at_position(VX_clean, 30, 1620)
-    #    VY_clean = append_values_at_position(VY_clean, 30, 1620)
-#
-    #    X_smooth = append_values_at_position(X_smooth, 30, 1620, value=X_smooth[1620])
-    #    Y_smooth = append_values_at_position(Y_smooth, 30, 1620, value=Y_smooth[1620])
         
     #t = np.arange(0,len(VX_clean))/FPS
     t = np.arange(0,len(X))/FPS

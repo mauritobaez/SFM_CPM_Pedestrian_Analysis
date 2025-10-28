@@ -10,17 +10,17 @@ from lib import add_vertical_line, get_middle
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
-file_with_acc_info = 'analisis/dec_CPM_beta_fix'  # File with acceleration info
+file_with_acc_info = 'analisis/acc_cpm_both'  # File with acceleration info
 DEC_NAME = 'analisis/dec_CPM_both'
 WITH_NOTHING_TOO = False
-ACC = False
-DEC = True
+ACC = True
+DEC = False
 MODEL = 'CPM'  # 'SFM' or 'CPM'
 DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_CPM_v4_dec_both'  # Folder to save images
+name = 'only_events_CPM_v4_acc_both'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -106,8 +106,11 @@ for key in keys:
             v_d = vds[i if not (key == '01' or key == '09') else i-1]
             ts = t[AMOUNT_ZEROES:middle+1]
             beta = betas[i if not (key == '01' or key == '09') else i-1] if betas else 0.9
-            theoretical_v = v_d * (1 - np.exp(-ts / tau)) if MODEL == 'SFM' else np.where(ts < tau, v_d * (ts / tau) ** beta, v_d)
-            fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green', dash='dash')))
+            if MODEL == 'SFM':
+                theoretical_v = v_d * (1 - np.exp(-ts / tau))  
+            elif MODEL == 'CPM':
+                theoretical_v = np.where(ts < tau, v_d * (ts / tau) ** beta, v_d)
+            fig.add_trace(go.Scatter(x=ts, y=theoretical_v, mode='lines', name='Theoretical Velocity', line=dict(color='green'), line_shape='hv'))
             if f'event_{i+1}' in doubles:
                 double_info = doubles[f'event_{i+1}']
                 best_index = double_info['best_index']

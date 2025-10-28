@@ -21,6 +21,34 @@ def cpm_acceleration_with_beta(v_d, beta):
         return np.where(t < tau, v_d * (t / tau) ** beta, v_d)
     return cpm_acc1
 
+
+
+def cpm_acceleration_discrete(v_d):
+    def inner(t, tau, beta):
+        """
+        Discrete-time CPM acceleration model (curve_fit-compatible).
+
+        t     : array-like of time values (float or int)
+        tau   : duration to reach v_d (seconds or steps)
+        beta  : exponent controlling acceleration curve
+        """
+        t = np.asarray(t)
+        
+        dt = 1/FPS
+        steps = np.floor(t / dt).astype(int)
+        tau_steps = tau / dt
+        
+        # Discrete automaton-like rule
+        v = np.empty_like(t, dtype=float)
+        for i, step in enumerate(steps):
+            if step < tau_steps:
+                v[i] = v_d * ((step / tau_steps) ** beta)
+            else:
+                v[i] = v_d
+        return v
+    return inner
+
+
 def cpm_acceleration(v_d):
     def cpm_acc2(t, tau, beta):
         t = np.asarray(t)
@@ -113,17 +141,15 @@ def best_fit(t, v, model=acceleration, model_args=None):
         model_args = []
     # Fit the exponential modeltion to the velocity data
     popt, pcov = curve_fit(model(*model_args), t, v, maxfev=10000)
-    #tau_fit = popt[0]
-    #v_fit = popt[1]
         
     # Calcular el Error Cuadrático Medio (ECM) entre los valores ajustados y los reales
     function = model(*model_args)
     errors = []
-    for i, curr_t in enumerate(t):
-        v_fit = function(curr_t, *popt)
-        errors.append((v_fit - v[i]) ** 2)
-        
+    #for i, curr_t in enumerate(t):
+    v_fit = function(t, *popt)
+    errors.append((v_fit - v) ** 2)
     ecm = np.mean(errors)
+    
     return popt, ecm
     
 def double_acceleration(t, v, index_start, index_end, last_vd=None):
@@ -174,7 +200,7 @@ def deceleration_cpm(v, curr_end, middle):
     v_data = v_data_full[start_index:]
     t_data = np.arange(len(v_data)) / FPS
     
-    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration, model_args=[v_data[0]])
+    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_with_beta, model_args=[v_data[0], 0.9])
     tau = popt[0]
     
     return {
@@ -186,7 +212,6 @@ def deceleration_cpm(v, curr_end, middle):
         'tau': tau,
         'velocity_at_best_time': v_data[0],
         'ecm': ecm,
-        'beta': popt[1] if len(popt) > 1 else 0.9
     }
     
 
@@ -270,14 +295,6 @@ def parameters_for_acceleration(i, v, start, middles):
     return t, v, acceleration_with_vd, [v_d]
 
 def cpm_parameters_for_acceleration(i, v, start, middles):
-    curr_mid = middles[i]
-    
-    v_d = np.average(v[curr_mid-60:curr_mid + 1])
-    v = v[start:curr_mid + 1]
-    t = np.arange(len(v)) / FPS
-    return t, v, cpm_acceleration_with_beta, [v_d, 0.9]
-
-def cpm_parameters_for_acceleration_both(i, v, start, middles):
     curr_mid = middles[i]
     
     v_d = np.average(v[curr_mid-60:curr_mid + 1])
