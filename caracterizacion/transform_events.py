@@ -13,14 +13,14 @@ folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros'] 
 file_with_acc_info = 'analisis/acc_cpm_both'  # File with acceleration info
 DEC_NAME = 'analisis/dec_CPM_both'
 WITH_NOTHING_TOO = False
-ACC = True
-DEC = False
+ACC = False
+DEC = True
 MODEL = 'CPM'  # 'SFM' or 'CPM'
 DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_CPM_v4_acc_both'  # Folder to save images
+name = 'only_events_CPM_dec_both'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -152,9 +152,24 @@ for key in keys:
             if DEC_EXP:
                 tau = event_dec_info['tau']
                 v_M = event_dec_info['velocity_at_best_time']
-                beta = event_dec_info.get('beta', 0.9)
+                beta = event_dec_info['beta']
                 t_dec = t[int(best_time*60) + AMOUNT_ZEROES: -AMOUNT_ZEROES]
-                theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau) if MODEL == 'SFM' else np.where(t_dec - best_time < tau, v_M * (1 - (t_dec - best_time) / tau)** beta, 0)
+                if MODEL == 'SFM':
+                    theoretical_v_dec = v_M * np.exp(-(t_dec-best_time) / tau)
+                elif MODEL == 'CPM':
+                    #dt = 1/FPS
+                    #t_to_use = t_dec - t_dec[0]
+                    #steps = np.floor(t_to_use / dt).astype(int)
+                    #tau_steps = tau / dt + t_to_use[0]
+                    #theoretical_v_dec = np.empty_like(t, dtype=float)
+                    #for j, step in enumerate(steps):
+                    #    if step < tau_steps:
+                    #        theoretical_v_dec[j] = v_M * (1 - (step / tau_steps) ** beta)
+                    #    else:
+                    #        theoretical_v_dec[j] = 0
+                            
+                    theoretical_v_dec = np.where(t_dec - best_time < tau, v_M * (1 - ((t_dec - best_time) / tau)** beta), 0)
+                
                 fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration', line=dict(color='red', dash='dash')))
             
                 if MODEL == 'SFM':

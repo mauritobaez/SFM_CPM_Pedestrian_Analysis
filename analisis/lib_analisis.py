@@ -48,6 +48,31 @@ def cpm_acceleration_discrete(v_d):
         return v
     return inner
 
+def cpm_deceleration_discrete(v_d):
+    def inner(t, tau, beta):
+        """
+        Discrete-time CPM deceleration model (curve_fit-compatible).
+
+        t     : array-like of time values (float or int)
+        tau   : duration to reach 0 (seconds or steps)
+        beta  : exponent controlling deceleration curve
+        """
+        t = np.asarray(t)
+        
+        dt = 1/FPS
+        steps = np.floor(t / dt).astype(int)
+        tau_steps = tau / dt
+        
+        # Discrete automaton-like rule
+        v = np.empty_like(t, dtype=float)
+        for i, step in enumerate(steps):
+            if step < tau_steps:
+                v[i] = v_d * (1 - (step / tau_steps) ** beta)
+            else:
+                v[i] = 0
+        return v
+    return inner
+
 
 def cpm_acceleration(v_d):
     def cpm_acc2(t, tau, beta):
@@ -147,6 +172,7 @@ def best_fit(t, v, model=acceleration, model_args=None):
     errors = []
     #for i, curr_t in enumerate(t):
     v_fit = function(t, *popt)
+    print(v_fit[-1])
     errors.append((v_fit - v) ** 2)
     ecm = np.mean(errors)
     
@@ -195,13 +221,12 @@ def deceleration_cpm(v, curr_end, middle):
     
     best_time, best_first_m, best_second_m, best_first_b, best_second_b = double_linear_regression(v_data_full, time, middle, curr_end)
 
-    start_index = int(best_time * FPS)
+    start_index = int(round(best_time * FPS))
     
     v_data = v_data_full[start_index:]
     t_data = np.arange(len(v_data)) / FPS
     
-    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_with_beta, model_args=[v_data[0], 0.9])
-    tau = popt[0]
+    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])
     
     return {
         'best_time': best_time,
@@ -209,7 +234,8 @@ def deceleration_cpm(v, curr_end, middle):
         'best_second_m': best_second_m,
         'best_first_b': best_first_b,
         'best_second_b': best_second_b,
-        'tau': tau,
+        'tau': popt[0],
+        'beta': popt[1],
         'velocity_at_best_time': v_data[0],
         'ecm': ecm,
     }

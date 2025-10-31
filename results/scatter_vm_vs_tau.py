@@ -2,9 +2,14 @@ import json
 import plotly.graph_objects as go
 import numpy as np
 
+file_name = 'acc_60_I2T'
+
 # Read the JSON file
-with open('./analisis/acc_60_I2T.json', 'r') as f:
+with open(f'./analisis/{file_name}.json', 'r') as f:
     data = json.load(f)
+
+x_axis = 'taus'
+y_axis = 'ecms'
 
 # Create lists to store the data for each pedestrian
 traces = []
@@ -18,13 +23,17 @@ colors = [
 
 # Process data for each pedestrian
 for i, (ped_id, ped_data) in enumerate(data['pastos'].items()):
-    taus = ped_data['taus']
-    vds = ped_data['vds']
+    x_values = ped_data[x_axis]
+    y_values = ped_data[y_axis]
+    doubles = ped_data.get('doubles', [])
+    
+    for double in doubles:
+        double[-1] 
     
     # Create a scatter trace for each pedestrian
     trace = go.Scatter(
-        x=taus,
-        y=vds,
+        x=x_values,
+        y=y_values,
         mode='markers',
         name=f'Pedestrian {ped_id}',
         marker=dict(
@@ -40,9 +49,9 @@ fig = go.Figure(data=traces)
 
 # Update layout
 fig.update_layout(
-    title='Desired Velocity vs Tau by Pedestrian',
-    xaxis_title='τ (s)',
-    yaxis_title='Desired Velocity (m/s)',
+    title=f'{y_axis} vs {x_axis} by Pedestrian',
+    xaxis_title=f'{x_axis} (s)',
+    yaxis_title=f'{y_axis} (m/s)',
     font=dict(size=14),
     showlegend=True,
     legend=dict(
@@ -74,7 +83,7 @@ fig.update_yaxes(
 )
 
 # Save the plot as HTML
-fig.write_html("scatter_vm_vs_tau.html")
+fig.write_html(f"results/{file_name}_{x_axis}_{y_axis}.html")
 
 # Show the plot (optional if you're running this in a notebook or interactive environment)
 #fig.show()

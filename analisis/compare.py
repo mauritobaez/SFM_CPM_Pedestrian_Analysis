@@ -7,8 +7,8 @@ from lib_analisis import best_fit, cpm_parameters_for_acceleration, deceleration
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'acc_cpm_bothalt'  # 'pastos_with_taus'
-idea = 'acceleration' # 'acceleration' or 'deceleration'
+output_file = 'dec_cpm_both'  # 'pastos_with_taus'
+idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
 AMOUNT_ZEROES = 60
@@ -54,9 +54,8 @@ for key in keys:
             if model == 'CPM':
                 t, v, func, func_args = cpm_parameters_for_acceleration(i, v, AMOUNT_ZEROES, middles)
                 popt, ecm = best_fit(t, v, model=func, model_args=func_args)
-                tau_fit = popt[0]
                 
-                taus.append(tau_fit)
+                taus.append(popt[0])
                 ecms.append(ecm)
                 vds.append(func_args[0])
                 betas.append(popt[1])
