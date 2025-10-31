@@ -7,7 +7,7 @@ from lib_analisis import best_fit, cpm_parameters_for_acceleration, deceleration
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'dec_cpm_both'  # 'pastos_with_taus'
+output_file = 'dec_cpm_both_half'  # 'pastos_with_taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60

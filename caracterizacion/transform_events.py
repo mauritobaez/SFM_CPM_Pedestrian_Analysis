@@ -11,7 +11,7 @@ FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/acc_cpm_both'  # File with acceleration info
-DEC_NAME = 'analisis/dec_CPM_both'
+DEC_NAME = 'analisis/dec_CPM_both_half'
 WITH_NOTHING_TOO = False
 ACC = False
 DEC = True
@@ -20,7 +20,7 @@ DOUBLE_LINES = False
 DEC_EXP = True
 SHOW = False
 SAVE = True
-name = 'only_events_CPM_dec_both'  # Folder to save images
+name = 'only_events_CPM_dec_both_half'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60
 keys= []
@@ -167,7 +167,7 @@ for key in keys:
                     #        theoretical_v_dec[j] = v_M * (1 - (step / tau_steps) ** beta)
                     #    else:
                     #        theoretical_v_dec[j] = 0
-                            
+                    t_dec = t_dec[::2]
                     theoretical_v_dec = np.where(t_dec - best_time < tau, v_M * (1 - ((t_dec - best_time) / tau)** beta), 0)
                 
                 fig.add_trace(go.Scatter(x=t_dec, y=theoretical_v_dec, mode='lines', name='Theoretical Deceleration', line=dict(color='red', dash='dash')))
