@@ -70,8 +70,6 @@ def cpm_deceleration_discrete(v_d):
                 v[i] = v_d * (1 - (step / tau_steps) ** beta)
             else:
                 v[i] = 0
-        if v[-1] > 0.01:
-            v[-1] = 99999999.0
         
         return v
     return inner
@@ -175,7 +173,7 @@ def best_fit(t, v, model=acceleration, model_args=None):
     errors = []
     #for i, curr_t in enumerate(t):
     v_fit = function(t, *popt)
-    print(v_fit[-1])
+
     errors.append((v_fit - v) ** 2)
     ecm = np.mean(errors)
     
@@ -229,8 +227,9 @@ def deceleration_cpm(v, curr_end, middle):
     v_data = v_data_full[start_index:]
     t_data = np.arange(len(v_data)) / FPS
     # Only keep the even data points to simulate discrete model
-    v_data = v_data[::2]
-    t_data = t_data[::2]
+    intial_value_index = 0 
+    v_data = v_data[intial_value_index::2]
+    t_data = t_data[intial_value_index::2]
     
     popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])
     
@@ -332,4 +331,6 @@ def cpm_parameters_for_acceleration(i, v, start, middles):
     v_d = np.average(v[curr_mid-60:curr_mid + 1])
     v = v[start:curr_mid + 1]
     t = np.arange(len(v)) / FPS
-    return t, v, cpm_acceleration, [v_d]
+    v = v[::2]
+    t = t[::2]
+    return t, v, cpm_acceleration_discrete, [v_d]
