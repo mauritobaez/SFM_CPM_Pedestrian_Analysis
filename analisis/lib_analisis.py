@@ -233,6 +233,19 @@ def deceleration_cpm(v, curr_end, middle):
     
     popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])
     
+    theoretical_v_dec = np.where(t_data < popt[0], v_data[0] * (1 - ((t_data) / popt[0])** popt[1]), 0)
+    
+    converted = False
+    if theoretical_v_dec[-1] > 0.01:
+        converted = True
+        print(f"Warning: Final velocity after deceleration is not close to zero in CPM deceleration fit. {theoretical_v_dec[-1]}")
+        popt, pcov = curve_fit(cpm_deceleration_discrete(v_data[0]), t_data, v_data, maxfev=10000, bounds=([0, 0], [t_data[-1], 5.0]))
+        errors = []
+        v_fit = cpm_deceleration_discrete(v_data[0])(t_data, *popt)
+        errors.append((v_fit - v_data) ** 2)
+        ecm = np.mean(errors)
+        print(f"Refitted with bounds: tau={popt[0]}, beta={popt[1]}, ecm={ecm}, final velocity={v_fit[-1]}")
+    
     return {
         'best_time': best_time,
         'best_first_m': best_first_m,
@@ -243,6 +256,7 @@ def deceleration_cpm(v, curr_end, middle):
         'beta': popt[1],
         'velocity_at_best_time': v_data[0],
         'ecm': ecm,
+        'converted': converted
     }
     
 

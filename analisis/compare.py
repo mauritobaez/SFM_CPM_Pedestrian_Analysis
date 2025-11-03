@@ -36,6 +36,8 @@ for key in keys:
     betas = []
     middles = pastos[key]['middles']
     curr_deceleration_info = {}
+    
+    print(f"Processing pasture {key}...")
 
     for i, event in enumerate(events):
         v = event['v']
