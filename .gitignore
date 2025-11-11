@@ -180,4 +180,5 @@ datosCorregidos
 **/*.json
 
 **.html
+**.xlsx
 *.txt

@@ -48,14 +48,63 @@ def cpm_acceleration_discrete(v_d):
         return v
     return inner
 
+def cpm_acceleration_discrete_with_beta(v_d, beta):
+    def inner(t, tau):
+        """
+        Discrete-time CPM acceleration model (curve_fit-compatible).
+
+        t     : array-like of time values (float or int)
+        tau   : duration to reach v_d (seconds or steps)
+        """
+        t = np.asarray(t)
+        
+        dt = 1/FPS
+        steps = np.floor(t / dt).astype(int)
+        tau_steps = tau / dt
+        
+        # Discrete automaton-like rule
+        v = np.empty_like(t, dtype=float)
+        for i, step in enumerate(steps):
+            if step < tau_steps:
+                v[i] = v_d * ((step / tau_steps) ** beta)
+            else:
+                v[i] = v_d
+        return v
+    return inner
+
 def cpm_deceleration_discrete(v_d):
-    def inner(t, tau, beta):
+    def inner(t, beta):
+        """
+        Discrete-time CPM deceleration model (curve_fit-compatible).
+
+        t     : array-like of time values (float or int)
+        #tau   : duration to reach 0 (seconds or steps)
+        beta  : exponent controlling deceleration curve
+        """
+        t = np.asarray(t)
+        
+        dt = 1/30
+        steps = np.floor(t / dt).astype(int)
+        tau_steps = t[-1] / dt
+        
+        # Discrete automaton-like rule
+        v = np.empty_like(t, dtype=float)
+        for i, step in enumerate(steps):
+            if step < tau_steps:
+                v[i] = v_d * (1 - (step / tau_steps))** beta
+            else:
+                v[i] = 0
+        
+        return v
+    return inner
+
+def cpm_deceleration_discrete_with_beta(v_d, beta):
+    def inner(t, tau):
         """
         Discrete-time CPM deceleration model (curve_fit-compatible).
 
         t     : array-like of time values (float or int)
         tau   : duration to reach 0 (seconds or steps)
-        beta  : exponent controlling deceleration curve
         """
         t = np.asarray(t)
         
@@ -67,7 +116,7 @@ def cpm_deceleration_discrete(v_d):
         v = np.empty_like(t, dtype=float)
         for i, step in enumerate(steps):
             if step < tau_steps:
-                v[i] = v_d * (1 - (step / tau_steps) ** beta)
+                v[i] = v_d * (1 - (step / tau_steps))** beta
             else:
                 v[i] = 0
         
@@ -231,20 +280,21 @@ def deceleration_cpm(v, curr_end, middle):
     v_data = v_data[intial_value_index::2]
     t_data = t_data[intial_value_index::2]
     
+    #popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])    
     popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])
     
-    theoretical_v_dec = np.where(t_data < popt[0], v_data[0] * (1 - ((t_data) / popt[0])** popt[1]), 0)
+    theoretical_v_dec = np.where(t_data < t_data[-1], v_data[0] * (1 - ((t_data) / t_data[-1]))** popt[0], 0) # popt[1]
     
     converted = False
     if theoretical_v_dec[-1] > 0.01:
         converted = True
         print(f"Warning: Final velocity after deceleration is not close to zero in CPM deceleration fit. {theoretical_v_dec[-1]}")
-        popt, pcov = curve_fit(cpm_deceleration_discrete(v_data[0]), t_data, v_data, maxfev=10000, bounds=([0, 0], [t_data[-1], 5.0]))
+        popt, pcov = curve_fit(cpm_deceleration_discrete_with_beta(v_data[0], 0.9), t_data, v_data, maxfev=10000, bounds=([0], [t_data[-1]])) # bounds=([0, 0], [t_data[-1], 5.0]))
         errors = []
-        v_fit = cpm_deceleration_discrete(v_data[0])(t_data, *popt)
+        v_fit = cpm_deceleration_discrete_with_beta(v_data[0], 0.9)(t_data, *popt)
         errors.append((v_fit - v_data) ** 2)
         ecm = np.mean(errors)
-        print(f"Refitted with bounds: tau={popt[0]}, beta={popt[1]}, ecm={ecm}, final velocity={v_fit[-1]}")
+        print(f"Refitted with bounds: tau={popt[0]}, beta={0.9}, ecm={ecm}, final velocity={v_fit[-1]}")
     
     return {
         'best_time': best_time,
@@ -253,7 +303,7 @@ def deceleration_cpm(v, curr_end, middle):
         'best_first_b': best_first_b,
         'best_second_b': best_second_b,
         'tau': popt[0],
-        'beta': popt[1],
+        'beta': 0.9,
         'velocity_at_best_time': v_data[0],
         'ecm': ecm,
         'converted': converted
@@ -347,4 +397,4 @@ def cpm_parameters_for_acceleration(i, v, start, middles):
     t = np.arange(len(v)) / FPS
     v = v[::2]
     t = t[::2]
-    return t, v, cpm_acceleration_discrete, [v_d]
+    return t, v, cpm_acceleration_discrete_with_beta, [v_d, 0.9]

@@ -7,27 +7,18 @@ file_name = 'acc_60_I2T'
 with open(f'./analisis/{file_name}.json', 'r') as f:
     data = json.load(f)
 
-x_axis = 'taus'
-y_axis = 'ecms'
-
-x_axis_unit = 's'
-y_axis_unit = 'm/s'
-
 # Create lists to store the data for each pedestrian
 traces = []
 
 # Create a color list for different pedestrians
 colors = [
-    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-    '#aec7e8', '#ffbb78', '#98df8a', '#ff9896'
+    '#2ca02c', '#d62728'
 ]
 
 # Process data for each pedestrian
 for i, (ped_id, ped_data) in enumerate(data['pastos'].items()):
-    x_values = ped_data[x_axis]
-    y_values = ped_data[y_axis]
-    doubles = ped_data.get('doubles', [])
+    x_values = ped_data['taus']
+    y_values = ped_data['ecms']
     
     # Create a scatter trace for each pedestrian
     trace = go.Scatter(
@@ -37,20 +28,35 @@ for i, (ped_id, ped_data) in enumerate(data['pastos'].items()):
         name=f'Pedestrian {ped_id}',
         marker=dict(
             size=10,
-            color=colors[i % len(colors)],
+            color=colors[1],
             symbol='circle'
         )
     )
     traces.append(trace)
+    
+    doubles = [double['best_error'] for double in ped_data.get('doubles', []).values()]
+    trace = go.Scatter(
+        x=x_values,
+        y=y_values,
+        mode='markers',
+        name=f'Pedestrian {ped_id}',
+        marker=dict(
+            size=10,
+            color=colors[0],
+            symbol='square'
+        )
+    )
+    traces.append(trace)
+    
 
 # Create the figure
 fig = go.Figure(data=traces)
 
 # Update layout
 fig.update_layout(
-    title=f'{y_axis} vs {x_axis} by Pedestrian',
-    xaxis_title=f'{x_axis} {x_axis_unit}',
-    yaxis_title=f'{y_axis} {y_axis_unit}',
+    title=f'ecm vs tau by Pedestrian',
+    xaxis_title=f'tau (s)',
+    yaxis_title=f'ecm',
     font=dict(size=14),
     showlegend=True,
     legend=dict(
@@ -83,7 +89,7 @@ fig.update_yaxes(
 #fig.update_xaxes(type="log")
 fig.update_yaxes(type="log")
 # Save the plot as HTML
-fig.write_html(f"results/{file_name}_{x_axis}_{y_axis}.html")
+fig.write_html(f"results/{file_name}_double_ecms_change.html")
 
 # Show the plot (optional if you're running this in a notebook or interactive environment)
 #fig.show()
