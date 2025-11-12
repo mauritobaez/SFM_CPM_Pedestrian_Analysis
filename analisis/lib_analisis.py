@@ -73,19 +73,19 @@ def cpm_acceleration_discrete_with_beta(v_d, beta):
     return inner
 
 def cpm_deceleration_discrete(v_d):
-    def inner(t, beta):
+    def inner(t, tau, beta):
         """
         Discrete-time CPM deceleration model (curve_fit-compatible).
 
         t     : array-like of time values (float or int)
-        #tau   : duration to reach 0 (seconds or steps)
+        tau   : duration to reach 0 (seconds or steps)
         beta  : exponent controlling deceleration curve
         """
         t = np.asarray(t)
         
         dt = 1/30
         steps = np.floor(t / dt).astype(int)
-        tau_steps = t[-1] / dt
+        tau_steps = tau / dt
         
         # Discrete automaton-like rule
         v = np.empty_like(t, dtype=float)
@@ -265,7 +265,7 @@ def deceleartion_following_distance(vel_start, positions, best_time):
     
     return {'tau': tau, 'distance': distance, 'velocity_at_best_time': vel_start}
 
-def deceleration_cpm(v, curr_end, middle):
+def deceleration_cpm(v, curr_end, middle, fixed_beta=False):
     v_data_full = v[AMOUNT_ZEROES : -AMOUNT_ZEROES]
     time = np.arange(len(v_data_full)) / FPS
     
@@ -280,10 +280,15 @@ def deceleration_cpm(v, curr_end, middle):
     v_data = v_data[intial_value_index::2]
     t_data = t_data[intial_value_index::2]
     
-    #popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])    
-    popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])
+    if fixed_beta:
+        popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete_with_beta, model_args=[v_data[0], 0.9])
+    else:
+        popt, ecm = best_fit(t_data, v_data, model=cpm_deceleration_discrete, model_args=[v_data[0]])
     
-    theoretical_v_dec = np.where(t_data < t_data[-1], v_data[0] * (1 - ((t_data) / t_data[-1]))** popt[0], 0) # popt[1]
+    tau = popt[0]
+    beta = popt[1] if not fixed_beta else 0.9
+    
+    theoretical_v_dec = np.where(t_data < tau, v_data[0] * (1 - ((t_data) / tau))** beta, 0) # popt[1]
     
     converted = False
     if theoretical_v_dec[-1] > 0.01:
@@ -303,7 +308,7 @@ def deceleration_cpm(v, curr_end, middle):
         'best_first_b': best_first_b,
         'best_second_b': best_second_b,
         'tau': popt[0],
-        'beta': 0.9,
+        'beta': beta,
         'velocity_at_best_time': v_data[0],
         'ecm': ecm,
         'converted': converted

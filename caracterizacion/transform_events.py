@@ -7,19 +7,19 @@ import plotly.graph_objects as go
 
 from lib import add_vertical_line, get_middle
 
-FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
-EVENTS = [i for i in range(1,9)]  # Events to process
+FILES_TO_USE = [1]  # Use all files from 01 to 14
+EVENTS = [3]  # Events to process
 folder_name = 'only_events_60_v2'#['fft_with_30_zeros', 'no_fft_with_30_zeros']  # Change this to the folder you want to use
 file_with_acc_info = 'analisis/acc_CPM_both_half_beta'  # File with acceleration info
-DEC_NAME = 'analisis/dec_CPM_both_half_beta'
+DEC_NAME = 'analisis/dec_cpm'
 WITH_NOTHING_TOO = False
-ACC = True
-DEC = False
+ACC = False
+DEC = True
 MODEL = 'CPM'  # 'SFM' or 'CPM'
 DOUBLE_LINES = False
 DEC_EXP = True
-SHOW = False
-SAVE = True
+SHOW = True
+SAVE = False
 name = 'only_events_CPM_acc_both_half_beta'  # Folder to save images
 AMOUNT_ZEROES = 60
 FPS = 60

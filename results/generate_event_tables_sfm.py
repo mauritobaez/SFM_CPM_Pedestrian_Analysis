@@ -80,16 +80,11 @@ for ped_id in sorted(pastos.keys()):
         'pedestrian': ped_id,
         'event': 'Average',
         'MSE (single)': fmt_val(sum(ecms) / len(ecms)),
-    #    'Std Dev (single)': fmt_val(pd.Series(ecms).std()),
         'MSE (double)': fmt_val(sum(ped_double_ecm) / len(ped_double_ecm)) if ped_double_ecm else '-',
-     #   'Std Dev (double)': fmt_val(pd.Series(ped_double_ecm).std()) if ped_double_ecm else '-',
         'i2t': fmt_val(sum(i2ts) / len(i2ts)),
         'Tau (single)': fmt_val(sum(taus) / len(taus)),
-      #  'Std Dev (single Tau)': fmt_val(pd.Series(taus).std()),
         '1st Tau (double)': fmt_val(sum(ped_first_tau) / len(ped_first_tau)) if ped_first_tau else '-',
         '2nd Tau (double)': fmt_val(sum(ped_second_tau) / len(ped_second_tau)) if ped_second_tau else '-',
-       # 'Std Dev (1st Tau)': fmt_val(pd.Series(ped_first_tau).std()) if ped_first_tau else '-',
-        #'Std Dev (2nd Tau)': fmt_val(pd.Series(ped_second_tau).std()) if ped_second_tau else '-'
     })
     
     all_ecms.extend(ecms)

@@ -6,7 +6,7 @@ from lib_analisis import best_fit, cpm_parameters_for_acceleration, deceleration
 FILES_TO_USE = [i for i in range(1,15)]  # Use all files from 01 to 14
 EVENTS = [i for i in range(1,9)]
 folder_name = 'only_events_60_v2'
-output_file = 'dec_cpm_both_no_tau'  # 'pastos_with_taus'
+output_file = 'dec_cpm'  # 'pastos_with_taus'
 idea = 'deceleration' # 'acceleration' or 'deceleration'
 USE_WITHOUT_SMOOTH = False
 FPS = 60
@@ -14,6 +14,8 @@ AMOUNT_ZEROES = 60
 i2t_min_threshold = 0.5
 model = 'CPM'  # 'CPM' or 'SFM'
 ECM_THRESHOLD = 0.004
+
+CPM_FIXED_BETA = True  # Only used for deceleration with CPM
 
 
 keys = []
@@ -42,7 +44,7 @@ for key in keys:
         
         if idea == 'deceleration':
             if model == 'CPM':
-                curr_deceleration_info[f'event_{i+1}'] = deceleration_cpm(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES)
+                curr_deceleration_info[f'event_{i+1}'] = deceleration_cpm(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES, fixed_beta=CPM_FIXED_BETA)
             else:
                 positions = event['y'] if i == 2 or i == 5 else event['x']
                 curr_deceleration_info[f'event_{i+1}'] = deceleration(v, len(v) - 2*AMOUNT_ZEROES - 1, middle=middles[i] - AMOUNT_ZEROES, positions=positions)
