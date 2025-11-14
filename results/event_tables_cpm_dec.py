@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 
 INPUT_BOTH = Path("analisis/dec_cpm_both.json")
-INPUT = Path("analisis/dec_cpm_both_half.json")
+INPUT = Path("analisis/dec_cpm.json")
 OUT_CSV = Path(__file__).parent / "event_tables_cpm_dec.csv"
 OUT_XLSX = Path(__file__).parent / "event_tables_cpm_dec.xlsx"
 
