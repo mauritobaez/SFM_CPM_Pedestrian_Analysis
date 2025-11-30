@@ -12,7 +12,7 @@ traces = []
 
 # Create a color list for different pedestrians
 colors = [
-    '#2ca02c', '#d62728'
+    "#130dae", '#d62728'
 ]
 
 # Process data for each pedestrian
@@ -27,7 +27,7 @@ for i, (ped_id, ped_data) in enumerate(data['pastos'].items()):
         mode='markers',
         name=f'Pedestrian {ped_id}',
         marker=dict(
-            size=10,
+            size=18,
             color=colors[1],
             symbol='circle'
         ),
@@ -42,9 +42,9 @@ for i, (ped_id, ped_data) in enumerate(data['pastos'].items()):
         mode='markers',
         name=f'Pedestrian {ped_id}',
         marker=dict(
-            size=10,
+            size=18,
             color=colors[0],
-            symbol='square'
+            symbol='x'
         ),
         showlegend=False  # Hide legend for doubles to avoid duplication
     )
@@ -58,7 +58,7 @@ traces.append(go.Scatter(
     mode='markers',
     name='Single Acc MSE',
     marker=dict(
-        size=10,
+        size=22,
         color=colors[1],
         symbol='circle'
     )
@@ -69,9 +69,9 @@ traces.append(go.Scatter(
     mode='markers',
     name='Double Acc MSE',
     marker=dict(
-        size=20,
+        size=22,
         color=colors[0],
-        symbol='square'
+        symbol='x'
     )
 ))
 
@@ -83,7 +83,7 @@ fig.update_layout(
     title=f'Single Acceleration MSE vs Double Acceleration MSE',
     xaxis_title=f'Single Acceleration tau (s)',
     yaxis_title=f'MSE',
-    font=dict(size=24),
+    font=dict(size=32),
     showlegend=True,
     legend=dict(
         yanchor="top",
